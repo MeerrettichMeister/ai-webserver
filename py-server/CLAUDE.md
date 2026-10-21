@@ -33,4 +33,6 @@ Ruff and Pyrefly are in the `dev` dependency group (`uv add --dev <pkg>` for mor
 docker compose -f scripts/docker-compose.yaml up -d
 ```
 
-Neither a PostgreSQL driver (e.g. `psycopg`) nor an ASGI server (e.g. `uvicorn`) is in the dependencies yet. Add them before wiring SQLAlchemy to Postgres or serving the FastAPI app.
+SQLAlchemy talks to Postgres via psycopg 3 (`psycopg[binary]`, bundles libpq), so connection URLs use the `postgresql+psycopg://` scheme, e.g. `postgresql+psycopg://postgres:postgres@localhost:5432/postgres`. The FastAPI app is served with uvicorn (`uv run uvicorn <module>:app --reload`).
+
+Plain `uvicorn` is used deliberately, not `uvicorn[standard]` / `fastapi[standard]`: those extras pull in C extensions (pyyaml, httptools, …) without Python 3.15 wheels, which fail to build on Windows without MSVC.
