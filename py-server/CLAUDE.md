@@ -46,8 +46,10 @@ routers → services → repositories → models. Each layer only calls the one 
   DTO they return as the return type, and use neither SQLAlchemy nor the ORM models
 - `etags.py`: optimistic locking over HTTP. `Recipe`, `Ingredient` and `Step` have a `version`
   exposed as `ETag`; writes require `If-Match` (428 if missing), which `IfMatchDep` parses into
-  an `ExpectedVersion` that the service checks (412 if stale). `Recipe.version` covers the whole
-  aggregate: every write to a recipe or its children must call `recipe.touch()`
+  an `ExpectedVersion` that the service checks (412 if stale). `If-Match` accepts the quoted
+  ETag (`"3"`) and the bare number (`3`, what Swagger UI users type), comma-separated lists and
+  `*`. `Recipe.version` covers the whole aggregate: every write to a recipe or its children must
+  call `recipe.touch()`, so changing an ingredient or step also changes the recipe's ETag
 
 There is no test suite yet.
 

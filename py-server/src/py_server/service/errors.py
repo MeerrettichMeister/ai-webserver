@@ -15,9 +15,10 @@ class InvalidReferenceError(ServiceError):
 
 
 class PreconditionFailedError(ServiceError):
-    """The object was changed by someone else since the client read it."""
+    """The object is no longer at the version the change was based on."""
 
     def __init__(
-        self, message: str = "This was changed by someone else; fetch it again and retry"
+        self,
+        message: str = "This is no longer the version you sent; fetch it again and retry",
     ) -> None:
         super().__init__(message)
