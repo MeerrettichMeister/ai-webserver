@@ -1,20 +1,25 @@
 [project]
 name = "py-server"
 version = "0.1.0"
-description = "Add your description here"
+description = "Recipe API built with FastAPI and SQLAlchemy"
 readme = "README.md"
 requires-python = ">=3.15"
 dependencies = [
     "fastapi>=0.143.3",
     "psycopg[binary]>=3.3.6",
+    "pydantic>=2.14.1",
     "sqlalchemy>=2.1.5",
     "uvicorn>=0.54.0",
 ]
 
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14"]
+build-backend = "uv_build"
+
 [tool.ruff]
 # target-version is inferred from requires-python.
 line-length = 100
-src = ["."]
+src = ["src"]
 
 [tool.ruff.lint]
 select = [
@@ -41,7 +46,8 @@ select = [
     "RUF",   # ruff-specific
 ]
 ignore = [
-    "E501", # line length is handled by the formatter
+    "E501",    # line length is handled by the formatter
+    "FAST003", # misses path params consumed by Annotated dependency aliases (e.g. RecipeDep)
 ]
 
 [tool.ruff.lint.per-file-ignores]
