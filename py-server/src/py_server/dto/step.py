@@ -1,3 +1,5 @@
+"""Request and response bodies for steps."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -27,6 +29,8 @@ class StepUpdate(BaseModel):
 
 
 class StepRead(ReadModel):
+    """A step with its id, position and version."""
+
     id: UUID
     position: int
     preparation_method: str

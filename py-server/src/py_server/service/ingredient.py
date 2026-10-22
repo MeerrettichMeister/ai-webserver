@@ -1,3 +1,5 @@
+"""Business logic for ingredients."""
+
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -19,12 +21,14 @@ class IngredientService:
         self._ingredients = IngredientRepository(session)
 
     def find_all(self, recipe_id: UUID, search: str = "") -> list[IngredientRead]:
+        """The recipe's ingredients whose name contains `search`, by name."""
         if not self._recipes.exists(recipe_id):
             raise NotFoundError("Recipe not found")
         ingredients = self._ingredients.find_by_recipe(recipe_id, search)
         return [IngredientRead.model_validate(i) for i in ingredients]
 
     def get(self, recipe_id: UUID, ingredient_id: UUID) -> IngredientRead:
+        """One ingredient of the recipe."""
         return IngredientRead.model_validate(self._get(recipe_id, ingredient_id))
 
     def update(
@@ -34,6 +38,7 @@ class IngredientService:
         payload: IngredientUpdate,
         expected: ExpectedVersion,
     ) -> IngredientRead:
+        """Change an ingredient if `expected` matches its version."""
         ingredient = self._get(recipe_id, ingredient_id)
         expected.check(ingredient.version)
         ingredient.name = payload.ingredient
@@ -49,6 +54,7 @@ class IngredientService:
         return IngredientRead.model_validate(ingredient)
 
     def _get(self, recipe_id: UUID, ingredient_id: UUID) -> Ingredient:
+        """Load the ingredient of the recipe, or raise NotFoundError."""
         ingredient = self._ingredients.get(recipe_id, ingredient_id)
         if ingredient is None:
             raise NotFoundError("Ingredient not found")

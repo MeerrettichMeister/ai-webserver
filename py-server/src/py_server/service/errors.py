@@ -1,3 +1,6 @@
+"""Errors the services raise; main.py maps them to HTTP status codes."""
+
+
 class ServiceError(Exception):
     """A request the service layer refuses; the API turns it into an error response."""
 

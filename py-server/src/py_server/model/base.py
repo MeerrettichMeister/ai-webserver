@@ -1,8 +1,12 @@
+"""Declarative base shared by all ORM models."""
+
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):
+    """Base class of all ORM models; names constraints deterministically."""
+
     # Deterministic constraint names, so migrations can refer to (and drop) them by name.
     metadata = MetaData(
         naming_convention={

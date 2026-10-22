@@ -1,3 +1,5 @@
+"""ORM model of the ingredient table."""
+
 import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING

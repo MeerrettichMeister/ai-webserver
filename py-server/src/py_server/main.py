@@ -1,3 +1,5 @@
+"""The FastAPI application: routers, startup seeding and error responses."""
+
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 

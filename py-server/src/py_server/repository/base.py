@@ -1,3 +1,5 @@
+"""Base class of the repositories."""
+
 from sqlalchemy.orm import Session
 
 

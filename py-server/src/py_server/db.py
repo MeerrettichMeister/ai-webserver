@@ -1,3 +1,5 @@
+"""Database engine and the per-request session dependency."""
+
 from collections.abc import Iterator
 from functools import lru_cache
 from typing import Annotated
@@ -11,6 +13,7 @@ from py_server.config import get_settings
 
 @lru_cache
 def get_engine() -> Engine:
+    """The database engine, created once."""
     return create_engine(get_settings().database_url)
 
 

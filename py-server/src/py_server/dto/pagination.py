@@ -1,3 +1,5 @@
+"""Query parameters and response body for paginated lists."""
+
 from math import ceil
 
 from pydantic import BaseModel, Field, computed_field
@@ -26,4 +28,5 @@ class Page[T](BaseModel):
     @computed_field(description="Number of pages.")
     @property
     def pages(self) -> int:
+        """Number of pages, the last one possibly partly filled."""
         return ceil(self.total / self.size)

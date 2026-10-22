@@ -1,3 +1,5 @@
+"""Business logic for recipes."""
+
 from collections.abc import Iterable, Mapping
 from uuid import UUID
 
@@ -27,6 +29,7 @@ class RecipeService:
         self._recipes = RecipeRepository(session)
 
     def find_page(self, query: RecipeListQuery) -> Page[RecipeSummary]:
+        """One page of recipe summaries, filtered and ordered by name."""
         recipes = self._recipes.find_page(query.search, offset=query.offset, limit=query.size)
         return Page[RecipeSummary](
             items=[RecipeSummary.model_validate(r) for r in recipes],
@@ -36,9 +39,11 @@ class RecipeService:
         )
 
     def get(self, recipe_id: UUID) -> RecipeRead:
+        """One recipe with its ingredients and steps."""
         return RecipeRead.model_validate(self._get(recipe_id))
 
     def exists(self, recipe_id: UUID) -> bool:
+        """Whether a recipe with this id exists."""
         return self._recipes.exists(recipe_id)
 
     def create(self, payload: RecipeCreate, recipe_id: UUID | None = None) -> RecipeRead:
@@ -105,6 +110,7 @@ class RecipeService:
     def update(
         self, recipe_id: UUID, payload: RecipeUpdate, expected: ExpectedVersion
     ) -> RecipeRead:
+        """Rename a recipe if `expected` matches its version."""
         recipe = self._get(recipe_id)
         expected.check(recipe.version)
         recipe.name = payload.name
@@ -113,10 +119,12 @@ class RecipeService:
         return self.get(recipe.id)
 
     def delete(self, recipe_id: UUID) -> None:
+        """Delete a recipe with its ingredients and steps."""
         self._recipes.delete(self._get(recipe_id))
         commit(self._session)
 
     def _get(self, recipe_id: UUID) -> Recipe:
+        """Load the recipe with ingredients and steps, or raise NotFoundError."""
         recipe = self._recipes.get(recipe_id)
         if recipe is None:
             raise NotFoundError("Recipe not found")
@@ -126,6 +134,7 @@ class RecipeService:
 def _require_known_ids(
     kind: str, ids: Iterable[UUID | None], existing: Mapping[UUID, object]
 ) -> None:
+    """Raise InvalidReferenceError for ids that are not in `existing`."""
     if unknown := {i for i in ids if i is not None and i not in existing}:
         msg = f"Not {kind}s of this recipe: {', '.join(sorted(map(str, unknown)))}"
         raise InvalidReferenceError(msg)

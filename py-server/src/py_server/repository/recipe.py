@@ -1,3 +1,5 @@
+"""Database queries for recipes."""
+
 from collections.abc import Sequence
 from uuid import UUID
 
@@ -9,11 +11,14 @@ from py_server.repository.base import Repository
 
 
 class RecipeRepository(Repository):
+    """Data access for the recipe table."""
+
     def get(self, recipe_id: UUID) -> Recipe | None:
         """The recipe with its ingredients and steps loaded, or None."""
         return self.session.scalar(self._query().where(Recipe.id == recipe_id))
 
     def exists(self, recipe_id: UUID) -> bool:
+        """Whether a recipe with this id exists."""
         return self.session.get(Recipe, recipe_id) is not None
 
     def find_page(self, search: str, offset: int, limit: int) -> Sequence[Recipe]:
@@ -35,9 +40,11 @@ class RecipeRepository(Repository):
         return self.session.scalar(_matching(select(func.count()).select_from(Recipe), search)) or 0
 
     def add(self, recipe: Recipe) -> None:
+        """Stage a new recipe, with its ingredients and steps, for insert."""
         self.session.add(recipe)
 
     def delete(self, recipe: Recipe) -> None:
+        """Stage a recipe for deletion; its ingredients and steps cascade."""
         self.session.delete(recipe)
 
     @staticmethod

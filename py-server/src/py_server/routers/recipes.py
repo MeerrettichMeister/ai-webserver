@@ -1,3 +1,5 @@
+"""Routes for recipes."""
+
 from typing import Annotated
 from uuid import UUID
 
@@ -20,6 +22,7 @@ router = APIRouter(prefix="/recipes", tags=["recipes"])
 
 
 def get_recipe_service(session: SessionDep) -> RecipeService:
+    """Dependency: the recipe service on the request's session."""
     return RecipeService(session)
 
 
@@ -36,11 +39,13 @@ def list_recipes(
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def create_recipe(payload: RecipeCreate, service: RecipeServiceDep) -> RecipeRead:
+    """Create a recipe with its ingredients and steps."""
     return service.create(payload)
 
 
 @router.get("/{recipe_id}")
 def get_recipe(recipe_id: UUID, service: RecipeServiceDep, response: Response) -> RecipeRead:
+    """One recipe with ingredients and steps; its version is sent as ETag."""
     recipe = service.get(recipe_id)
     response.headers["ETag"] = etag(recipe.version)
     return recipe
@@ -72,6 +77,7 @@ def update_recipe(
     service: RecipeServiceDep,
     response: Response,
 ) -> RecipeRead:
+    """Rename a recipe; requires If-Match with its current version."""
     recipe = service.update(recipe_id, payload, if_match)
     response.headers["ETag"] = etag(recipe.version)
     return recipe
@@ -79,4 +85,5 @@ def update_recipe(
 
 @router.delete("/{recipe_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_recipe(recipe_id: UUID, service: RecipeServiceDep) -> None:
+    """Delete a recipe with its ingredients and steps."""
     service.delete(recipe_id)

@@ -1,3 +1,5 @@
+"""Business logic for steps."""
+
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -18,16 +20,19 @@ class StepService:
         self._steps = StepRepository(session)
 
     def find_all(self, recipe_id: UUID) -> list[StepRead]:
+        """The recipe's steps in order."""
         if not self._recipes.exists(recipe_id):
             raise NotFoundError("Recipe not found")
         return [StepRead.model_validate(s) for s in self._steps.find_by_recipe(recipe_id)]
 
     def get(self, recipe_id: UUID, step_id: UUID) -> StepRead:
+        """One step of the recipe."""
         return StepRead.model_validate(self._get(recipe_id, step_id))
 
     def update(
         self, recipe_id: UUID, step_id: UUID, payload: StepUpdate, expected: ExpectedVersion
     ) -> StepRead:
+        """Change a step's text if `expected` matches its version."""
         step = self._get(recipe_id, step_id)
         expected.check(step.version)
         step.preparation_method = payload.preparation_method
@@ -36,6 +41,7 @@ class StepService:
         return StepRead.model_validate(step)
 
     def _get(self, recipe_id: UUID, step_id: UUID) -> Step:
+        """Load the step of the recipe, or raise NotFoundError."""
         step = self._steps.get(recipe_id, step_id)
         if step is None:
             raise NotFoundError("Step not found")

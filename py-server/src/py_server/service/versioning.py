@@ -16,6 +16,7 @@ class ExpectedVersion:
     any_version: bool = False
 
     def check(self, version: int) -> None:
+        """Raise PreconditionFailedError unless `version` is one of the expected."""
         if not self.any_version and version not in self.versions:
             raise PreconditionFailedError
 

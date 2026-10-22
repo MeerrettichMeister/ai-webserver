@@ -1,3 +1,5 @@
+"""Field types and base classes shared by the DTOs."""
+
 from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
@@ -16,6 +18,7 @@ Version = Annotated[int, Field(description='Send as `If-Match: "<version>"` when
 
 
 def _to_json_number(value: Decimal) -> int | float:
+    """The amount as int if it is whole, otherwise as float."""
     return int(value) if value == value.to_integral_value() else float(value)
 
 

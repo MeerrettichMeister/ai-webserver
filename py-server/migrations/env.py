@@ -1,3 +1,5 @@
+"""Alembic environment: migrates the DATABASE_URL database to Base.metadata."""
+
 import logging
 
 from alembic import context
@@ -27,6 +29,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run the migrations against the database."""
     engine = create_engine(database_url, poolclass=pool.NullPool)
     with engine.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)

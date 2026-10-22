@@ -1,3 +1,5 @@
+"""ORM model of the recipe table."""
+
 import uuid
 from typing import TYPE_CHECKING
 
@@ -12,6 +14,8 @@ if TYPE_CHECKING:
 
 
 class Recipe(Base):
+    """A recipe; owns its ingredients and steps."""
+
     __tablename__ = "recipe"
     __table_args__ = (
         # The order of the paginated list, so a page is read from the index instead of sorting

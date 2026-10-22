@@ -1,3 +1,5 @@
+"""Database queries for steps."""
+
 from collections.abc import Sequence
 from uuid import UUID
 
@@ -8,6 +10,8 @@ from py_server.repository.base import Repository
 
 
 class StepRepository(Repository):
+    """Data access for the step table."""
+
     def get(self, recipe_id: UUID, step_id: UUID) -> Step | None:
         """The step, if it belongs to the recipe."""
         return self.session.scalar(

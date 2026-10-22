@@ -9,6 +9,7 @@ from py_server.service import ExpectedVersion
 
 
 def etag(version: int) -> str:
+    """The ETag header value for a version."""
     return f'"{version}"'
 
 

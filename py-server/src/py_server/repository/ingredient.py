@@ -1,3 +1,5 @@
+"""Database queries for ingredients."""
+
 from collections.abc import Sequence
 from uuid import UUID
 
@@ -8,6 +10,8 @@ from py_server.repository.base import Repository
 
 
 class IngredientRepository(Repository):
+    """Data access for the ingredient table."""
+
     def get(self, recipe_id: UUID, ingredient_id: UUID) -> Ingredient | None:
         """The ingredient, if it belongs to the recipe."""
         return self.session.scalar(

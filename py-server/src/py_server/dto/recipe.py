@@ -1,3 +1,5 @@
+"""Request and response bodies for recipes."""
+
 from collections.abc import Sequence
 from typing import Self
 from uuid import UUID
@@ -16,6 +18,7 @@ from py_server.dto.step import StepRead, StepReplace, StepText
 
 
 def _check_unique_names(ingredients: Sequence[IngredientFields]) -> None:
+    """Raise ValueError if ingredient names repeat."""
     names = [ingredient.ingredient for ingredient in ingredients]
     if duplicates := {name for name in names if names.count(name) > 1}:
         msg = f"Duplicate ingredient names: {', '.join(sorted(duplicates))}"
@@ -23,6 +26,7 @@ def _check_unique_names(ingredients: Sequence[IngredientFields]) -> None:
 
 
 def _check_unique_ids(items: Sequence[IngredientReplace] | Sequence[StepReplace]) -> None:
+    """Raise ValueError if ids repeat."""
     ids = [item.id for item in items if item.id is not None]
     if duplicates := {i for i in ids if ids.count(i) > 1}:
         msg = f"Duplicate ids: {', '.join(sorted(map(str, duplicates)))}"
@@ -48,11 +52,14 @@ class RecipeCreate(BaseModel):
 
     @model_validator(mode="after")
     def check_ingredient_names(self) -> Self:
+        """Reject duplicate ingredient names."""
         _check_unique_names(self.ingredients)
         return self
 
 
 class RecipeUpdate(BaseModel):
+    """The new name of a recipe."""
+
     name: str = Field(min_length=1, max_length=255)
 
 
@@ -67,6 +74,7 @@ class RecipeReplace(BaseModel):
 
     @model_validator(mode="after")
     def check_references(self) -> Self:
+        """Reject duplicate ingredient names and duplicate ids."""
         _check_unique_names(self.ingredients)
         _check_unique_ids(self.ingredients)
         _check_unique_ids(self.steps)
@@ -82,5 +90,7 @@ class RecipeSummary(ReadModel):
 
 
 class RecipeRead(RecipeSummary):
+    """A recipe with its ingredients and steps."""
+
     ingredients: list[IngredientRead]
     steps: list[StepRead]
