@@ -9,13 +9,14 @@ from sqlalchemy.orm import Session
 from py_server.dto import (
     Page,
     RecipeCreate,
+    RecipeDetailsFields,
     RecipeListQuery,
     RecipeRead,
     RecipeReplace,
     RecipeSummary,
     RecipeUpdate,
 )
-from py_server.model import Ingredient, Recipe, Step
+from py_server.model import Ingredient, Recipe, RecipeDetails, Step
 from py_server.repository import RecipeRepository
 from py_server.service.errors import ConflictError, InvalidReferenceError, NotFoundError
 from py_server.service.versioning import ExpectedVersion, commit
@@ -50,6 +51,7 @@ class RecipeService:
         """Create a recipe, with a new id unless `recipe_id` is given (as for seed recipes)."""
         recipe = Recipe(
             name=payload.name,
+            details=_apply_details(RecipeDetails(), payload.details),
             ingredients=[
                 Ingredient(name=i.ingredient, amount=i.amount, unit=i.unit)
                 for i in payload.ingredients
@@ -73,7 +75,7 @@ class RecipeService:
     def replace(
         self, recipe_id: UUID, payload: RecipeReplace, expected: ExpectedVersion
     ) -> RecipeRead:
-        """Replace name, ingredients and steps.
+        """Replace name, details, ingredients and steps.
 
         Items with an `id` are updated, those without one are added, and the recipe's existing
         ones that are left out are deleted. Steps are renumbered in list order.
@@ -101,6 +103,7 @@ class RecipeService:
             steps.append(step)
 
         recipe.name = payload.name
+        _apply_details(recipe.details, payload.details)
         recipe.ingredients = ingredients
         recipe.steps = steps
         recipe.touch()
@@ -138,3 +141,11 @@ def _require_known_ids(
     if unknown := {i for i in ids if i is not None and i not in existing}:
         msg = f"Not {kind}s of this recipe: {', '.join(sorted(map(str, unknown)))}"
         raise InvalidReferenceError(msg)
+
+
+def _apply_details(details: RecipeDetails, fields: RecipeDetailsFields) -> RecipeDetails:
+    """Copy the request's detail fields onto `details` and return it."""
+    details.servings = fields.servings
+    details.preparation_time_minutes = fields.preparation_time_minutes
+    details.difficulty = fields.difficulty
+    return details

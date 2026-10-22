@@ -15,9 +15,13 @@ class ExpectedVersion:
     versions: frozenset[int] = frozenset()
     any_version: bool = False
 
+    def matches(self, version: int) -> bool:
+        """Whether `version` is one of the expected versions."""
+        return self.any_version or version in self.versions
+
     def check(self, version: int) -> None:
         """Raise PreconditionFailedError unless `version` is one of the expected."""
-        if not self.any_version and version not in self.versions:
+        if not self.matches(version):
             raise PreconditionFailedError
 
 

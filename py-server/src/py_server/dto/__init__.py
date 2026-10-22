@@ -18,6 +18,7 @@ from py_server.dto.recipe import (
     RecipeSummary,
     RecipeUpdate,
 )
+from py_server.dto.recipe_details import RecipeDetailsFields, RecipeDetailsRead
 from py_server.dto.step import StepRead, StepReplace, StepUpdate
 
 __all__ = [
@@ -28,6 +29,8 @@ __all__ = [
     "Page",
     "PageParams",
     "RecipeCreate",
+    "RecipeDetailsFields",
+    "RecipeDetailsRead",
     "RecipeListQuery",
     "RecipeRead",
     "RecipeReplace",

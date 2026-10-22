@@ -1,9 +1,14 @@
 # Recipe API
 
-A REST API for recipes, each with its ingredients and ordered preparation steps. Built with
-FastAPI, SQLAlchemy and PostgreSQL. The Pfannkuchen recipe
+A REST API for recipes, each with its details (servings, total time in minutes, difficulty
+`easy`/`medium`/`hard`), its ingredients and its ordered preparation steps. Built with FastAPI,
+SQLAlchemy and PostgreSQL. The Pfannkuchen recipe
 ([`seed/Pfannkuchen.json`](src/py_server/seed/Pfannkuchen.json)) is always available: the app
-creates it on startup if it is missing.
+creates it on startup if it is missing. More example recipes to `POST` are in
+[`recipes/`](recipes).
+
+In the database a recipe has exactly one `recipe_details` row (1:1; its primary key is the
+recipe's id) and any number of `ingredient` and `step` rows (1:N).
 
 ## Run locally
 
@@ -54,6 +59,9 @@ Recipes, ingredients and steps have a `version`, also sent as the `ETag` header.
 - version is no longer current: `412 Precondition Failed`; fetch it again and retry
 
 A recipe's version also changes when one of its ingredients or steps changes.
+
+`GET` on a single recipe, ingredient or step is conditional: with `If-None-Match` naming the
+current version (`"3"` or `3`), the answer is `304 Not Modified` without a body.
 
 ## Development
 

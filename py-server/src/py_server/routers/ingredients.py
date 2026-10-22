@@ -7,7 +7,14 @@ from fastapi import APIRouter, Depends, Query, Response, status
 
 from py_server.db import SessionDep
 from py_server.dto import IngredientRead, IngredientUpdate
-from py_server.etags import PRECONDITION_RESPONSES, IfMatchDep, etag
+from py_server.etags import (
+    NOT_MODIFIED_RESPONSES,
+    PRECONDITION_RESPONSES,
+    IfMatchDep,
+    IfNoneMatchDep,
+    etag,
+    send_etag,
+)
 from py_server.service import IngredientService
 
 router = APIRouter(prefix="/recipes/{recipe_id}/ingredients", tags=["ingredients"])
@@ -33,13 +40,17 @@ def list_ingredients(
     return service.find_all(recipe_id, search)
 
 
-@router.get("/{ingredient_id}")
+@router.get("/{ingredient_id}", responses=NOT_MODIFIED_RESPONSES)
 def get_ingredient(
-    recipe_id: UUID, ingredient_id: UUID, service: IngredientServiceDep, response: Response
+    recipe_id: UUID,
+    ingredient_id: UUID,
+    service: IngredientServiceDep,
+    if_none_match: IfNoneMatchDep,
+    response: Response,
 ) -> IngredientRead:
-    """One ingredient; its version is sent as ETag."""
+    """One ingredient; 304 if If-None-Match names its current version."""
     ingredient = service.get(recipe_id, ingredient_id)
-    response.headers["ETag"] = etag(ingredient.version)
+    send_etag(response, ingredient.version, if_none_match)
     return ingredient
 
 

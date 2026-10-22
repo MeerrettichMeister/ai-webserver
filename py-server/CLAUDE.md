@@ -17,7 +17,10 @@ routers → services → repositories → models. Each layer only calls the one 
 - `config.py`: `Settings` read from env (`DATABASE_URL`), via `get_settings()`
 - `db.py`: engine, the per-request `get_session` dependency and `SessionDep`
 - `model/`: SQLAlchemy ORM, one module per table (`base.py` holds `Base`): a `Recipe` owns its
-  `Ingredient`s (numeric amount, unit) and ordered `Step`s (plain text). Relationship
+  `RecipeDetails` (1:1: `recipe_details.recipe_id` is primary and foreign key; servings,
+  preparation time, `Difficulty` stored as text with a CHECK constraint), its `Ingredient`s
+  (numeric amount, unit) and its ordered `Step`s (plain text) (both 1:N). The API requires
+  `details` on create and replace, so every recipe has one. Relationship
   types from other modules are imported under `TYPE_CHECKING`. Import models from
   `py_server.model`: its `__init__.py` imports every model, so all tables are registered
 - `dto/`: Pydantic request/response bodies, one module per resource, re-exported from
@@ -49,7 +52,10 @@ routers → services → repositories → models. Each layer only calls the one 
   an `ExpectedVersion` that the service checks (412 if stale). `If-Match` accepts the quoted
   ETag (`"3"`) and the bare number (`3`, what Swagger UI users type), comma-separated lists and
   `*`. `Recipe.version` covers the whole aggregate: every write to a recipe or its children must
-  call `recipe.touch()`, so changing an ingredient or step also changes the recipe's ETag
+  call `recipe.touch()`, so changing an ingredient or step also changes the recipe's ETag.
+  Single-item GETs are conditional: they take `IfNoneMatchDep` and set the ETag via
+  `send_etag()`, which answers `304 Not Modified` (no body) when `If-None-Match` names the
+  current version (weak comparison, so `W/"3"` matches there, unlike in `If-Match`)
 
 There is no test suite yet.
 

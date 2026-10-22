@@ -10,11 +10,12 @@ from py_server.model.base import Base
 
 if TYPE_CHECKING:
     from py_server.model.ingredient import Ingredient
+    from py_server.model.recipe_details import RecipeDetails
     from py_server.model.step import Step
 
 
 class Recipe(Base):
-    """A recipe; owns its ingredients and steps."""
+    """A recipe; owns its details (1:1), ingredients and steps (1:N)."""
 
     __tablename__ = "recipe"
     __table_args__ = (
@@ -25,8 +26,8 @@ class Recipe(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(255))
-    # Versions the whole recipe including its ingredients and steps, so it is bumped by hand
-    # (see touch()); SQLAlchemy still checks the old value in the UPDATE's WHERE clause.
+    # Versions the whole recipe including its details, ingredients and steps, so it is bumped by
+    # hand (see touch()); SQLAlchemy still checks the old value in the UPDATE's WHERE clause.
     version: Mapped[int] = mapped_column(default=1)
 
     __mapper_args__ = {  # noqa: RUF012 (declared by DeclarativeBase)
@@ -34,6 +35,11 @@ class Recipe(Base):
         "version_id_generator": False,
     }
 
+    # A scalar Mapped type makes this one-to-one (uselist=False).
+    details: Mapped[RecipeDetails] = relationship(
+        back_populates="recipe",
+        cascade="all, delete-orphan",
+    )
     ingredients: Mapped[list[Ingredient]] = relationship(
         back_populates="recipe",
         order_by="Ingredient.name",
@@ -46,5 +52,5 @@ class Recipe(Base):
     )
 
     def touch(self) -> None:
-        """Record that the recipe, or one of its ingredients or steps, has changed."""
+        """Record that the recipe or one of its parts has changed."""
         self.version += 1

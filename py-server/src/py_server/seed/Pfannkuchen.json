@@ -1,5 +1,6 @@
 {
     "name": "Pfannkuchen",
+    "details": {"servings": 4, "preparation_time_minutes": 60, "difficulty": "easy"},
     "ingredients": [
         {
             "amount": 400,

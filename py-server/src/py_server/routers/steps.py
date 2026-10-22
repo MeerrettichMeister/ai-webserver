@@ -7,7 +7,14 @@ from fastapi import APIRouter, Depends, Response
 
 from py_server.db import SessionDep
 from py_server.dto import StepRead, StepUpdate
-from py_server.etags import PRECONDITION_RESPONSES, IfMatchDep, etag
+from py_server.etags import (
+    NOT_MODIFIED_RESPONSES,
+    PRECONDITION_RESPONSES,
+    IfMatchDep,
+    IfNoneMatchDep,
+    etag,
+    send_etag,
+)
 from py_server.service import StepService
 
 router = APIRouter(prefix="/recipes/{recipe_id}/steps", tags=["steps"])
@@ -27,13 +34,17 @@ def list_steps(recipe_id: UUID, service: StepServiceDep) -> list[StepRead]:
     return service.find_all(recipe_id)
 
 
-@router.get("/{step_id}")
+@router.get("/{step_id}", responses=NOT_MODIFIED_RESPONSES)
 def get_step(
-    recipe_id: UUID, step_id: UUID, service: StepServiceDep, response: Response
+    recipe_id: UUID,
+    step_id: UUID,
+    service: StepServiceDep,
+    if_none_match: IfNoneMatchDep,
+    response: Response,
 ) -> StepRead:
-    """One step; its version is sent as ETag."""
+    """One step; 304 if If-None-Match names its current version."""
     step = service.get(recipe_id, step_id)
-    response.headers["ETag"] = etag(step.version)
+    send_etag(response, step.version, if_none_match)
     return step
 
 

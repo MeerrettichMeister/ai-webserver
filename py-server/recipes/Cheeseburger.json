@@ -1,0 +1,28 @@
+{
+    "name": "Cheeseburger",
+    "details": {"servings": 4, "preparation_time_minutes": 30, "difficulty": "easy"},
+    "ingredients": [
+        {"amount": 600, "unit": "g", "ingredient": "Rinderhackfleisch (ca. 20 % Fett)"},
+        {"amount": 1, "unit": "TL", "ingredient": "Salz"},
+        {"amount": 0.5, "unit": "TL", "ingredient": "Pfeffer, frisch gemahlen"},
+        {"amount": 1, "unit": "EL", "ingredient": "Öl"},
+        {"amount": 4, "unit": "Scheiben", "ingredient": "Cheddar"},
+        {"amount": 4, "unit": "Stück", "ingredient": "Burgerbrötchen"},
+        {"amount": 1, "unit": "EL", "ingredient": "Butter"},
+        {"amount": 4, "unit": "Blätter", "ingredient": "Eisbergsalat"},
+        {"amount": 2, "unit": "Stück", "ingredient": "Tomaten"},
+        {"amount": 1, "unit": "kleine", "ingredient": "rote Zwiebel"},
+        {"amount": 2, "unit": "Stück", "ingredient": "Gewürzgurken"},
+        {"amount": 4, "unit": "EL", "ingredient": "Ketchup"},
+        {"amount": 2, "unit": "EL", "ingredient": "Mayonnaise"},
+        {"amount": 2, "unit": "TL", "ingredient": "Senf"}
+    ],
+    "steps": [
+        "Das Hackfleisch in 4 gleich große Portionen teilen und jeweils locker zu einem flachen Patty formen, etwas größer als die Brötchen, da das Fleisch beim Braten schrumpft. Mit dem Daumen eine kleine Mulde in die Mitte drücken, damit sich die Pattys nicht wölben. Kalt stellen.",
+        "Salat waschen und trocken schleudern. Tomaten und Gewürzgurken in Scheiben, die Zwiebel in feine Ringe schneiden.",
+        "Die Brötchen aufschneiden, die Schnittflächen dünn mit Butter bestreichen und in einer Pfanne oder auf dem Grill goldbraun anrösten.",
+        "Eine Pfanne oder Grillplatte mit dem Öl stark erhitzen. Die Pattys erst kurz vor dem Braten von beiden Seiten salzen und pfeffern, dann ca. 3 Minuten braten, ohne sie zu bewegen oder anzudrücken.",
+        "Die Pattys wenden, sofort je eine Scheibe Cheddar darauflegen und weitere 2–3 Minuten braten. Zum Schmelzen des Käses kann die Pfanne kurz mit einem Deckel abgedeckt werden.",
+        "Die unteren Brötchenhälften mit Mayonnaise und Senf bestreichen, Salat, Tomaten und Zwiebelringe darauflegen. Die Pattys mit Käse daraufsetzen, mit Gurkenscheiben und Ketchup belegen und die oberen Brötchenhälften auflegen. Sofort servieren."
+    ]
+}

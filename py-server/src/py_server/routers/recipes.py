@@ -15,7 +15,14 @@ from py_server.dto import (
     RecipeSummary,
     RecipeUpdate,
 )
-from py_server.etags import PRECONDITION_RESPONSES, IfMatchDep, etag
+from py_server.etags import (
+    NOT_MODIFIED_RESPONSES,
+    PRECONDITION_RESPONSES,
+    IfMatchDep,
+    IfNoneMatchDep,
+    etag,
+    send_etag,
+)
 from py_server.service import RecipeService
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -43,11 +50,13 @@ def create_recipe(payload: RecipeCreate, service: RecipeServiceDep) -> RecipeRea
     return service.create(payload)
 
 
-@router.get("/{recipe_id}")
-def get_recipe(recipe_id: UUID, service: RecipeServiceDep, response: Response) -> RecipeRead:
-    """One recipe with ingredients and steps; its version is sent as ETag."""
+@router.get("/{recipe_id}", responses=NOT_MODIFIED_RESPONSES)
+def get_recipe(
+    recipe_id: UUID, service: RecipeServiceDep, if_none_match: IfNoneMatchDep, response: Response
+) -> RecipeRead:
+    """One recipe with ingredients and steps; 304 if If-None-Match is current."""
     recipe = service.get(recipe_id)
-    response.headers["ETag"] = etag(recipe.version)
+    send_etag(response, recipe.version, if_none_match)
     return recipe
 
 

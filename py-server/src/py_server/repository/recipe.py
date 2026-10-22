@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import Select, func, select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from py_server.model import Recipe
 from py_server.repository.base import Repository
@@ -14,7 +14,7 @@ class RecipeRepository(Repository):
     """Data access for the recipe table."""
 
     def get(self, recipe_id: UUID) -> Recipe | None:
-        """The recipe with its ingredients and steps loaded, or None."""
+        """The recipe with its details, ingredients and steps loaded, or None."""
         return self.session.scalar(self._query().where(Recipe.id == recipe_id))
 
     def exists(self, recipe_id: UUID) -> bool:
@@ -49,8 +49,13 @@ class RecipeRepository(Repository):
 
     @staticmethod
     def _query() -> Select[Recipe]:
-        """Select recipes with their ingredients and steps loaded up front."""
-        return select(Recipe).options(selectinload(Recipe.ingredients), selectinload(Recipe.steps))
+        """Select recipes with their details, ingredients and steps loaded up front."""
+        # The 1:1 details come in the same query (JOIN); the lists in one query each.
+        return select(Recipe).options(
+            joinedload(Recipe.details),
+            selectinload(Recipe.ingredients),
+            selectinload(Recipe.steps),
+        )
 
 
 def _matching[*Ts](query: Select[*Ts], search: str) -> Select[*Ts]:

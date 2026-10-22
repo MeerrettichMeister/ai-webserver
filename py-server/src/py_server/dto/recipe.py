@@ -14,6 +14,7 @@ from py_server.dto.ingredient import (
     IngredientReplace,
 )
 from py_server.dto.pagination import PageParams
+from py_server.dto.recipe_details import RecipeDetailsFields, RecipeDetailsRead
 from py_server.dto.step import StepRead, StepReplace, StepText
 
 
@@ -45,6 +46,7 @@ class RecipeCreate(BaseModel):
     """A new recipe; the seed recipe `seed/Pfannkuchen.json` is an example."""
 
     name: str = Field(min_length=1, max_length=255)
+    details: RecipeDetailsFields
     ingredients: list[IngredientCreate] = Field(default_factory=list)
     steps: list[StepText] = Field(
         default_factory=list, description="Instructions in the order they are performed."
@@ -67,6 +69,7 @@ class RecipeReplace(BaseModel):
     """The complete recipe: ingredients and steps left out are deleted."""
 
     name: str = Field(min_length=1, max_length=255)
+    details: RecipeDetailsFields
     ingredients: list[IngredientReplace] = Field(default_factory=list)
     steps: list[StepReplace] = Field(
         default_factory=list, description="Steps in the order they are performed."
@@ -90,7 +93,8 @@ class RecipeSummary(ReadModel):
 
 
 class RecipeRead(RecipeSummary):
-    """A recipe with its ingredients and steps."""
+    """A recipe with its details, ingredients and steps."""
 
+    details: RecipeDetailsRead
     ingredients: list[IngredientRead]
     steps: list[StepRead]
