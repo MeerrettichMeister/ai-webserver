@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_build`):
 
-- `main.py`: the FastAPI `app`; its lifespan runs `create_all` (there are no migrations yet)
+- `main.py`: the FastAPI `app` (it does not create tables; see Migrations)
 - `config.py`: `Settings` read from env (`DATABASE_URL`), via `get_settings()`
 - `db.py`: engine, the per-request `get_session` dependency and `SessionDep`
 - `models.py`: SQLAlchemy ORM: a `Recipe` owns its `Ingredient`s (amount, unit) and ordered `Step`s (each uses one ingredient)
@@ -48,5 +48,18 @@ docker compose -f scripts/docker-compose.yaml up -d
 ```
 
 SQLAlchemy talks to Postgres via psycopg 3 (`psycopg[binary]`, bundles libpq), so connection URLs use the `postgresql+psycopg://` scheme, e.g. `postgresql+psycopg://postgres:postgres@localhost:5432/postgres`. Set `DATABASE_URL` to use a different database.
+
+## Migrations
+
+Alembic manages the schema. Config is in `pyproject.toml` (`[tool.alembic]`, there is no `alembic.ini`); scripts are in `migrations/`, and `migrations/env.py` reads `DATABASE_URL` and `Base.metadata`.
+
+```sh
+uv run alembic upgrade head                          # apply migrations (run before starting the app)
+uv run alembic revision --autogenerate -m "<what>"   # after changing models.py; review the result
+uv run alembic check                                 # fail if models.py has changes without a migration
+uv run alembic downgrade -1                          # undo the last migration
+```
+
+Generated revisions are run through `ruff check --fix` and `ruff format` automatically. Constraint names come from the naming convention on `Base.metadata`, so migrations can refer to them. Autogenerate does not detect everything (e.g. renamed columns or tables show up as drop + add), so always read the generated script.
 
 Plain `uvicorn` is used deliberately, not `uvicorn[standard]` / `fastapi[standard]`: those extras pull in C extensions (pyyaml, httptools, …) without Python 3.15 wheels, which fail to build on Windows without MSVC.

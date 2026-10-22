@@ -5,6 +5,7 @@ description = "Recipe API built with FastAPI and SQLAlchemy"
 readme = "README.md"
 requires-python = ">=3.15"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi>=0.143.3",
     "psycopg[binary]>=3.3.6",
     "pydantic>=2.14.1",
@@ -79,3 +80,21 @@ dev = [
     "pyrefly>=1.4.0",
     "ruff>=0.17.1",
 ]
+
+
+[tool.alembic]
+script_location = "%(here)s/migrations"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s"
+
+# Format and lint newly generated revision scripts.
+[[tool.alembic.post_write_hooks]]
+name = "ruff_check"
+type = "module"
+module = "ruff"
+options = "check --fix REVISION_SCRIPT_FILENAME"
+
+[[tool.alembic.post_write_hooks]]
+name = "ruff_format"
+type = "module"
+module = "ruff"
+options = "format REVISION_SCRIPT_FILENAME"
