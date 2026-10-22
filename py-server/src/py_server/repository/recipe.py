@@ -17,10 +17,13 @@ class RecipeRepository(Repository):
         return self.session.get(Recipe, recipe_id) is not None
 
     def find_page(self, search: str, offset: int, limit: int) -> Sequence[Recipe]:
-        """Up to `limit` recipes after the first `offset`, ordered by name (see _matching)."""
+        """Up to `limit` recipes after the first `offset`, ordered by name (see _matching).
+
+        Only the recipe rows: ingredients and steps are not loaded.
+        """
         # id breaks ties between equal names, so pages neither overlap nor skip recipes.
         query = (
-            _matching(self._query(), search)
+            _matching(select(Recipe), search)
             .order_by(Recipe.name, Recipe.id)
             .offset(offset)
             .limit(limit)
@@ -40,7 +43,6 @@ class RecipeRepository(Repository):
     @staticmethod
     def _query() -> Select[Recipe]:
         """Select recipes with their ingredients and steps loaded up front."""
-        # selectinload loads them in a second query per relationship, so LIMIT applies to recipes.
         return select(Recipe).options(selectinload(Recipe.ingredients), selectinload(Recipe.steps))
 
 

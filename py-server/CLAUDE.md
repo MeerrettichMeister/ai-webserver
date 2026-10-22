@@ -26,7 +26,9 @@ routers → services → repositories → models. Each layer only calls the one 
   (responses, based on `ReadModel`); `common.py` holds shared types. The API calls an
   ingredient's name `ingredient` (`Ingredient.name` in the ORM)
 - Pagination (`dto/pagination.py`): `GET /recipes` takes `?page=&size=` (size ≤ 100) and returns
-  a `Page[RecipeRead]` (`items`, `total`, `page`, `size`, `pages`). The repository pages in SQL
+  a `Page[RecipeSummary]` (`items`, `total`, `page`, `size`, `pages`). List items are
+  `RecipeSummary` (id, name, version) without ingredients and steps, which are only loaded for
+  a single recipe (`RecipeRead` extends `RecipeSummary`). The repository pages in SQL
   (`LIMIT`/`OFFSET` plus a `count(*)`), ordered by `name, id` (the id makes the order total,
   so pages never overlap) and backed by the index `ix_recipe_name_id`. A route's query
   parameters go into one model (`Annotated[RecipeListQuery, Query()]`): FastAPI only expands a

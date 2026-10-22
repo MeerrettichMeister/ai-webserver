@@ -15,6 +15,7 @@ from py_server.dto.recipe import (
     RecipeListQuery,
     RecipeRead,
     RecipeReplace,
+    RecipeSummary,
     RecipeUpdate,
 )
 from py_server.dto.step import StepRead, StepReplace, StepUpdate
@@ -30,6 +31,7 @@ __all__ = [
     "RecipeListQuery",
     "RecipeRead",
     "RecipeReplace",
+    "RecipeSummary",
     "RecipeUpdate",
     "StepRead",
     "StepReplace",

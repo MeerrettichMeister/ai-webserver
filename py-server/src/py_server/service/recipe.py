@@ -10,6 +10,7 @@ from py_server.dto import (
     RecipeListQuery,
     RecipeRead,
     RecipeReplace,
+    RecipeSummary,
     RecipeUpdate,
 )
 from py_server.model import Ingredient, Recipe, Step
@@ -25,10 +26,10 @@ class RecipeService:
         self._session = session
         self._recipes = RecipeRepository(session)
 
-    def find_page(self, query: RecipeListQuery) -> Page[RecipeRead]:
+    def find_page(self, query: RecipeListQuery) -> Page[RecipeSummary]:
         recipes = self._recipes.find_page(query.search, offset=query.offset, limit=query.size)
-        return Page[RecipeRead](
-            items=[RecipeRead.model_validate(r) for r in recipes],
+        return Page[RecipeSummary](
+            items=[RecipeSummary.model_validate(r) for r in recipes],
             total=self._recipes.count(query.search),
             page=query.page,
             size=query.size,

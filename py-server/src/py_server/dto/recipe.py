@@ -73,9 +73,14 @@ class RecipeReplace(BaseModel):
         return self
 
 
-class RecipeRead(ReadModel):
+class RecipeSummary(ReadModel):
+    """A recipe in the list, without ingredients and steps (see `GET /recipes/{recipe_id}`)."""
+
     id: UUID
     name: str
     version: Version
+
+
+class RecipeRead(RecipeSummary):
     ingredients: list[IngredientRead]
     steps: list[StepRead]

@@ -10,6 +10,7 @@ from py_server.dto import (
     RecipeListQuery,
     RecipeRead,
     RecipeReplace,
+    RecipeSummary,
     RecipeUpdate,
 )
 from py_server.etags import PRECONDITION_RESPONSES, IfMatchDep, etag
@@ -28,7 +29,7 @@ RecipeServiceDep = Annotated[RecipeService, Depends(get_recipe_service)]
 @router.get("")
 def list_recipes(
     query: Annotated[RecipeListQuery, Query()], service: RecipeServiceDep
-) -> Page[RecipeRead]:
+) -> Page[RecipeSummary]:
     """One page of the recipes, ordered by name."""
     return service.find_page(query)
 
