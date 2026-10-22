@@ -1,11 +1,31 @@
 {
     "name": "Pfannkuchen",
-    "ingredients" :[
-{"amount": 400,"unit": "g","ingredient":"Mehl"},
-{"amount":3,"unit":"große","ingredient":"Eier"},
-{"amount":1,"unit":"Priese","ingredient":"Salz"},
-{"amount":750,"unit":"ml","ingredient":"Milch"},
-{"amount":30,"unit":"ml","ingredient":"Mineralwass mit Kohlensäure"}
+    "ingredients": [
+        {
+            "amount": 400,
+            "unit": "g",
+            "ingredient": "Mehl"
+        },
+        {
+            "amount": 3,
+            "unit": "große",
+            "ingredient": "Eier"
+        },
+        {
+            "amount": 1,
+            "unit": "Priese",
+            "ingredient": "Salz"
+        },
+        {
+            "amount": 750,
+            "unit": "ml",
+            "ingredient": "Milch"
+        },
+        {
+            "amount": 30,
+            "unit": "ml",
+            "ingredient": "Mineralwass mit Kohlensäure"
+        }
     ],
     "steps": [
         "Mehl, Eier, Salz und Milch in eine Schüssel geben und zügig zu einem glatten Teig verrühren, bis er Blasen wirft.  Den Teig für etwa 30 Minuten im Kühlschrank ruhen lassen. (So können sich die Zutaten miteinander verbinden und der Teig wird geschmeidig.)  ",
