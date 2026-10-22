@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_build`):
+A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_build`), in layers:
+routers → services → repositories → models. Each layer only calls the one below it.
 
-- `main.py`: the FastAPI `app` (it does not create tables; see Migrations)
+- `main.py`: the FastAPI `app` and the handler mapping `ServiceError`s to HTTP status codes (it
+  does not create tables; see Migrations)
 - `config.py`: `Settings` read from env (`DATABASE_URL`), via `get_settings()`
 - `db.py`: engine, the per-request `get_session` dependency and `SessionDep`
 - `model/`: SQLAlchemy ORM, one module per table (`base.py` holds `Base`): a `Recipe` owns its
@@ -19,13 +21,20 @@ A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_bu
   (responses, based on `ReadModel`); `common.py` holds shared types. The API calls an
   ingredient's name `ingredient` (`Ingredient.name` in the ORM)
 - `Pfannkuchen.json`: the reference body for `POST /recipes`; it must keep working unchanged
+- `repository/`: data access, one repository per table on the request's session. Only queries
+  and stages changes (`add`, `delete`); never commits
+- `service/`: business logic, one service per resource. Each public method is one transaction:
+  it takes and returns DTOs (`Model.model_validate(orm_obj)`), commits via
+  `service.versioning.commit()`, and signals failures with the `ServiceError` subclasses in
+  `service/errors.py` (not `HTTPException`)
+- `routers/`: HTTP only, one `APIRouter` per resource: path/query/header parameters, ETag
+  headers, status codes. Routes get their service through a `*ServiceDep` dependency, declare the
+  DTO they return as the return type, and use neither SQLAlchemy nor the ORM models
 - `etags.py`: optimistic locking over HTTP. `Recipe`, `Ingredient` and `Step` have a `version`
-  exposed as `ETag`; `PUT` requires a matching `If-Match` (428 if missing, 412 if stale).
-  `Recipe.version` covers the whole aggregate: every write to a recipe or its children must call
-  `recipe.touch()` and commit via `commit_or_412()`
-- `routers/`: one `APIRouter` per resource; `get_*_or_404` dependencies load path objects
+  exposed as `ETag`; writes require `If-Match` (428 if missing), which `IfMatchDep` parses into
+  an `ExpectedVersion` that the service checks (412 if stale). `Recipe.version` covers the whole
+  aggregate: every write to a recipe or its children must call `recipe.touch()`
 
-Routes return Pydantic models (`Model.model_validate(orm_obj)`) and declare them as the return type.
 There is no test suite yet.
 
 The git repository root is the parent directory (`AI-Webserver/`). This project lives in the `py-server/` subfolder.
