@@ -10,7 +10,7 @@ from py_server.dto.ingredient import (
     IngredientUpdate,
 )
 from py_server.dto.recipe import RecipeCreate, RecipeRead, RecipeReplace, RecipeUpdate
-from py_server.dto.step import StepCreate, StepRead, StepReplace, StepUpdate
+from py_server.dto.step import StepRead, StepReplace, StepUpdate
 
 __all__ = [
     "IngredientCreate",
@@ -21,7 +21,6 @@ __all__ = [
     "RecipeRead",
     "RecipeReplace",
     "RecipeUpdate",
-    "StepCreate",
     "StepRead",
     "StepReplace",
     "StepUpdate",

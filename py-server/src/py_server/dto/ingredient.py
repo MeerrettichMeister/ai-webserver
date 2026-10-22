@@ -1,13 +1,13 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
-from py_server.dto.common import OptionalId, ReadModel, Version
+from py_server.dto.common import Amount, OptionalId, ReadModel, Version
 
 
 class IngredientFields(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
-    amount: str = Field(max_length=50)
+    ingredient: str = Field(min_length=1, max_length=255, description="Name of the ingredient.")
+    amount: Amount
     unit: str = Field(max_length=50)
 
 
@@ -27,7 +27,8 @@ class IngredientUpdate(IngredientFields):
 
 class IngredientRead(ReadModel):
     id: UUID
-    name: str
-    amount: str
+    # Read from Ingredient.name; "ingredient" too, as FastAPI validates the response body again.
+    ingredient: str = Field(validation_alias=AliasChoices("name", "ingredient"))
+    amount: Amount
     unit: str
     version: Version

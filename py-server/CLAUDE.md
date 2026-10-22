@@ -10,13 +10,15 @@ A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_bu
 - `config.py`: `Settings` read from env (`DATABASE_URL`), via `get_settings()`
 - `db.py`: engine, the per-request `get_session` dependency and `SessionDep`
 - `model/`: SQLAlchemy ORM, one module per table (`base.py` holds `Base`): a `Recipe` owns its
-  `Ingredient`s (amount, unit) and ordered `Step`s (each uses one ingredient). Relationship
+  `Ingredient`s (numeric amount, unit) and ordered `Step`s (plain text). Relationship
   types from other modules are imported under `TYPE_CHECKING`. Import models from
   `py_server.model`: its `__init__.py` imports every model, so all tables are registered
 - `dto/`: Pydantic request/response bodies, one module per resource, re-exported from
-  `py_server.dto`. Each endpoint has its own body: `*Create` (nested in `POST /recipes`),
-  `*Replace` (nested in `PUT /recipes/{id}`), `*Update` (`PUT`/`PATCH` of that resource) and
-  `*Read` (responses, based on `ReadModel`); `common.py` holds shared types
+  `py_server.dto`. Each endpoint has its own body: `*Create` (`POST /recipes`), `*Replace`
+  (nested in `PUT /recipes/{id}`), `*Update` (`PUT`/`PATCH` of that resource) and `*Read`
+  (responses, based on `ReadModel`); `common.py` holds shared types. The API calls an
+  ingredient's name `ingredient` (`Ingredient.name` in the ORM)
+- `Pfannkuchen.json`: the reference body for `POST /recipes`; it must keep working unchanged
 - `etags.py`: optimistic locking over HTTP. `Recipe`, `Ingredient` and `Step` have a `version`
   exposed as `ETag`; `PUT` requires a matching `If-Match` (428 if missing, 412 if stale).
   `Recipe.version` covers the whole aggregate: every write to a recipe or its children must call

@@ -34,7 +34,6 @@ class Recipe(Base):
         back_populates="recipe",
         order_by="Step.position",
         cascade="all, delete-orphan",
-        overlaps="steps",
     )
 
     def touch(self) -> None:

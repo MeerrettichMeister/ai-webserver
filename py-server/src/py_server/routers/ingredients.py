@@ -70,7 +70,7 @@ def update_ingredient(
     response: Response,
 ) -> IngredientRead:
     check_if_match(if_match, ingredient.version)
-    ingredient.name = payload.name
+    ingredient.name = payload.ingredient
     ingredient.amount = payload.amount
     ingredient.unit = payload.unit
     ingredient.recipe.touch()

@@ -22,10 +22,7 @@ router = APIRouter(prefix="/recipes", tags=["recipes"])
 
 def _recipe_query() -> Select[Recipe]:
     """Select recipes with their ingredients and steps loaded up front."""
-    return select(Recipe).options(
-        selectinload(Recipe.ingredients),
-        selectinload(Recipe.steps).selectinload(Step.ingredient),
-    )
+    return select(Recipe).options(selectinload(Recipe.ingredients), selectinload(Recipe.steps))
 
 
 def get_recipe_or_404(recipe_id: UUID, session: SessionDep) -> Recipe:
@@ -54,19 +51,14 @@ def list_recipes(
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def create_recipe(payload: RecipeCreate, session: SessionDep) -> RecipeRead:
-    ingredients = {
-        i.name: Ingredient(name=i.name, amount=i.amount, unit=i.unit) for i in payload.ingredients
-    }
     recipe = Recipe(
         name=payload.name,
-        ingredients=list(ingredients.values()),
+        ingredients=[
+            Ingredient(name=i.ingredient, amount=i.amount, unit=i.unit) for i in payload.ingredients
+        ],
         steps=[
-            Step(
-                position=position,
-                ingredient=ingredients[step.ingredient],
-                preparation_method=step.preparation_method,
-            )
-            for position, step in enumerate(payload.steps, start=1)
+            Step(position=position, preparation_method=text)
+            for position, text in enumerate(payload.steps, start=1)
         ],
     )
     session.add(recipe)
@@ -99,24 +91,23 @@ def replace_recipe(
     _require_known_ids("ingredient", (i.id for i in payload.ingredients), existing_ingredients)
     _require_known_ids("step", (s.id for s in payload.steps), existing_steps)
 
-    ingredients: dict[str, Ingredient] = {}
+    ingredients: list[Ingredient] = []
     for item in payload.ingredients:
         ingredient = existing_ingredients[item.id] if item.id else Ingredient()
-        ingredient.name = item.name
+        ingredient.name = item.ingredient
         ingredient.amount = item.amount
         ingredient.unit = item.unit
-        ingredients[item.name] = ingredient
+        ingredients.append(ingredient)
 
     steps: list[Step] = []
     for position, item in enumerate(payload.steps, start=1):
         step = existing_steps[item.id] if item.id else Step()
         step.position = position
-        step.ingredient = ingredients[item.ingredient]
         step.preparation_method = item.preparation_method
         steps.append(step)
 
     recipe.name = payload.name
-    recipe.ingredients = list(ingredients.values())
+    recipe.ingredients = ingredients
     recipe.steps = steps
     recipe.touch()
     commit_or_412(session)
