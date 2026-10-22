@@ -11,6 +11,7 @@ from py_server.dto.ingredient import (
     IngredientRead,
     IngredientReplace,
 )
+from py_server.dto.pagination import PageParams
 from py_server.dto.step import StepRead, StepReplace, StepText
 
 
@@ -28,8 +29,16 @@ def _check_unique_ids(items: Sequence[IngredientReplace] | Sequence[StepReplace]
         raise ValueError(msg)
 
 
+class RecipeListQuery(PageParams):
+    """Query parameters of the recipe list: which recipes, and which page of them."""
+
+    search: str = Field(
+        default="", description="Only recipes whose name contains this, ignoring case."
+    )
+
+
 class RecipeCreate(BaseModel):
-    """A new recipe; `Pfannkuchen.json` is an example."""
+    """A new recipe; the seed recipe `seed/Pfannkuchen.json` is an example."""
 
     name: str = Field(min_length=1, max_length=255)
     ingredients: list[IngredientCreate] = Field(default_factory=list)

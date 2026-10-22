@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import selectinload
 
 from py_server.model import Recipe
@@ -16,13 +16,20 @@ class RecipeRepository(Repository):
     def exists(self, recipe_id: UUID) -> bool:
         return self.session.get(Recipe, recipe_id) is not None
 
-    def find_all(self, search: str = "") -> Sequence[Recipe]:
-        """Recipes by name, only those whose name contains `search` (ignoring case) if given."""
-        query = self._query().order_by(Recipe.name)
-        if search:
-            # autoescape makes % and _ in the search text match literally.
-            query = query.where(Recipe.name.icontains(search, autoescape=True))
+    def find_page(self, search: str, offset: int, limit: int) -> Sequence[Recipe]:
+        """Up to `limit` recipes after the first `offset`, ordered by name (see _matching)."""
+        # id breaks ties between equal names, so pages neither overlap nor skip recipes.
+        query = (
+            _matching(self._query(), search)
+            .order_by(Recipe.name, Recipe.id)
+            .offset(offset)
+            .limit(limit)
+        )
         return self.session.scalars(query).all()
+
+    def count(self, search: str) -> int:
+        """Number of recipes find_page() pages through."""
+        return self.session.scalar(_matching(select(func.count()).select_from(Recipe), search)) or 0
 
     def add(self, recipe: Recipe) -> None:
         self.session.add(recipe)
@@ -33,4 +40,13 @@ class RecipeRepository(Repository):
     @staticmethod
     def _query() -> Select[Recipe]:
         """Select recipes with their ingredients and steps loaded up front."""
+        # selectinload loads them in a second query per relationship, so LIMIT applies to recipes.
         return select(Recipe).options(selectinload(Recipe.ingredients), selectinload(Recipe.steps))
+
+
+def _matching[*Ts](query: Select[*Ts], search: str) -> Select[*Ts]:
+    """Only recipes whose name contains `search` (ignoring case), if given."""
+    if not search:
+        return query
+    # autoescape makes % and _ in the search text match literally.
+    return query.where(Recipe.name.icontains(search, autoescape=True))

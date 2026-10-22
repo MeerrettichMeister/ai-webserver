@@ -7,8 +7,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_build`), in layers:
 routers → services → repositories → models. Each layer only calls the one below it.
 
-- `main.py`: the FastAPI `app` and the handler mapping `ServiceError`s to HTTP status codes (it
+- `main.py`: the FastAPI `app`, its startup (`lifespan`: seeds recipes, so the app needs a
+  migrated database to start) and the handler mapping `ServiceError`s to HTTP status codes (it
   does not create tables; see Migrations)
+- `seed/`: recipes that always exist. Each is a `POST /recipes` body (`seed/Pfannkuchen.json`)
+  with a fixed id in `SEED_RECIPES`; on startup the missing ones are created, existing (also
+  edited) ones are left alone, deleted ones come back. The JSON ships inside the package, so it
+  is also in the Docker image
 - `config.py`: `Settings` read from env (`DATABASE_URL`), via `get_settings()`
 - `db.py`: engine, the per-request `get_session` dependency and `SessionDep`
 - `model/`: SQLAlchemy ORM, one module per table (`base.py` holds `Base`): a `Recipe` owns its
@@ -20,7 +25,14 @@ routers → services → repositories → models. Each layer only calls the one 
   (nested in `PUT /recipes/{id}`), `*Update` (`PUT`/`PATCH` of that resource) and `*Read`
   (responses, based on `ReadModel`); `common.py` holds shared types. The API calls an
   ingredient's name `ingredient` (`Ingredient.name` in the ORM)
-- `Pfannkuchen.json`: the reference body for `POST /recipes`; it must keep working unchanged
+- Pagination (`dto/pagination.py`): `GET /recipes` takes `?page=&size=` (size ≤ 100) and returns
+  a `Page[RecipeRead]` (`items`, `total`, `page`, `size`, `pages`). The repository pages in SQL
+  (`LIMIT`/`OFFSET` plus a `count(*)`), ordered by `name, id` (the id makes the order total,
+  so pages never overlap) and backed by the index `ix_recipe_name_id`. A route's query
+  parameters go into one model (`Annotated[RecipeListQuery, Query()]`): FastAPI only expands a
+  query model into separate parameters if it is the route's only query parameter
+- `seed/Pfannkuchen.json` is also the reference body for `POST /recipes`; it must keep working
+  unchanged (startup fails if it no longer validates against `RecipeCreate`)
 - `repository/`: data access, one repository per table on the request's session. Only queries
   and stages changes (`add`, `delete`); never commits
 - `service/`: business logic, one service per resource. Each public method is one transaction:
@@ -76,6 +88,8 @@ uv run alembic revision --autogenerate -m "<what>"   # after changing model/; re
 uv run alembic check                                 # fail if model/ has changes without a migration
 uv run alembic downgrade -1                          # undo the last migration
 ```
+
+Nothing has been deployed yet, so everything is in one revision, `initial schema`. Once there is a deployed database, add new revisions instead of editing that one.
 
 Generated revisions are run through `ruff check --fix` and `ruff format` automatically. Constraint names come from the naming convention on `Base.metadata`, so migrations can refer to them. Autogenerate does not detect everything (e.g. renamed columns or tables show up as drop + add), so always read the generated script.
 

@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String
+from sqlalchemy import Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from py_server.model.base import Base
@@ -13,6 +13,11 @@ if TYPE_CHECKING:
 
 class Recipe(Base):
     __tablename__ = "recipe"
+    __table_args__ = (
+        # The order of the paginated list, so a page is read from the index instead of sorting
+        # every recipe; id breaks ties between equal names.
+        Index("ix_recipe_name_id", "name", "id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(255))

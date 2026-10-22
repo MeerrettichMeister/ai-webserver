@@ -4,7 +4,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, Response, status
 
 from py_server.db import SessionDep
-from py_server.dto import RecipeCreate, RecipeRead, RecipeReplace, RecipeUpdate
+from py_server.dto import (
+    Page,
+    RecipeCreate,
+    RecipeListQuery,
+    RecipeRead,
+    RecipeReplace,
+    RecipeUpdate,
+)
 from py_server.etags import PRECONDITION_RESPONSES, IfMatchDep, etag
 from py_server.service import RecipeService
 
@@ -20,12 +27,10 @@ RecipeServiceDep = Annotated[RecipeService, Depends(get_recipe_service)]
 
 @router.get("")
 def list_recipes(
-    service: RecipeServiceDep,
-    search: Annotated[
-        str, Query(description="Only recipes whose name contains this, ignoring case.")
-    ] = "",
-) -> list[RecipeRead]:
-    return service.find_all(search)
+    query: Annotated[RecipeListQuery, Query()], service: RecipeServiceDep
+) -> Page[RecipeRead]:
+    """One page of the recipes, ordered by name."""
+    return service.find_page(query)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)

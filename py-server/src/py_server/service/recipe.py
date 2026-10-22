@@ -1,12 +1,20 @@
 from collections.abc import Iterable, Mapping
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from py_server.dto import RecipeCreate, RecipeRead, RecipeReplace, RecipeUpdate
+from py_server.dto import (
+    Page,
+    RecipeCreate,
+    RecipeListQuery,
+    RecipeRead,
+    RecipeReplace,
+    RecipeUpdate,
+)
 from py_server.model import Ingredient, Recipe, Step
 from py_server.repository import RecipeRepository
-from py_server.service.errors import InvalidReferenceError, NotFoundError
+from py_server.service.errors import ConflictError, InvalidReferenceError, NotFoundError
 from py_server.service.versioning import ExpectedVersion, commit
 
 
@@ -17,13 +25,23 @@ class RecipeService:
         self._session = session
         self._recipes = RecipeRepository(session)
 
-    def find_all(self, search: str = "") -> list[RecipeRead]:
-        return [RecipeRead.model_validate(r) for r in self._recipes.find_all(search)]
+    def find_page(self, query: RecipeListQuery) -> Page[RecipeRead]:
+        recipes = self._recipes.find_page(query.search, offset=query.offset, limit=query.size)
+        return Page[RecipeRead](
+            items=[RecipeRead.model_validate(r) for r in recipes],
+            total=self._recipes.count(query.search),
+            page=query.page,
+            size=query.size,
+        )
 
     def get(self, recipe_id: UUID) -> RecipeRead:
         return RecipeRead.model_validate(self._get(recipe_id))
 
-    def create(self, payload: RecipeCreate) -> RecipeRead:
+    def exists(self, recipe_id: UUID) -> bool:
+        return self._recipes.exists(recipe_id)
+
+    def create(self, payload: RecipeCreate, recipe_id: UUID | None = None) -> RecipeRead:
+        """Create a recipe, with a new id unless `recipe_id` is given (as for seed recipes)."""
         recipe = Recipe(
             name=payload.name,
             ingredients=[
@@ -35,8 +53,15 @@ class RecipeService:
                 for position, text in enumerate(payload.steps, start=1)
             ],
         )
+        if recipe_id is not None:
+            recipe.id = recipe_id
         self._recipes.add(recipe)
-        commit(self._session)
+        try:
+            commit(self._session)
+        except IntegrityError as exc:
+            self._session.rollback()
+            msg = "A recipe with this id already exists"
+            raise ConflictError(msg) from exc
         return self.get(recipe.id)
 
     def replace(
