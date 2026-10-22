@@ -1,0 +1,52 @@
+# Deployment: the recipe API with its PostgreSQL database.
+#
+#   cp .env.example .env        # and set a real POSTGRES_PASSWORD
+#   docker compose up -d --build
+#
+# On every start `migrate` brings the schema up to date before `api` starts.
+# (scripts/docker-compose.yaml is only the database for local development.)
+name: py-server
+
+x-app: &app
+  image: py-server:latest
+  build: .
+  environment:
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-recipes}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD, e.g. in .env}@db:5432/${POSTGRES_DB:-recipes}
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-recipes}
+      POSTGRES_USER: ${POSTGRES_USER:-recipes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD, e.g. in .env}
+    volumes:
+      # postgres:18 keeps its data in a versioned directory below /var/lib/postgresql.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No published port: only the other services reach the database.
+
+  migrate:
+    <<: *app
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  db-data:

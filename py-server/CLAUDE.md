@@ -80,3 +80,15 @@ uv run alembic downgrade -1                          # undo the last migration
 Generated revisions are run through `ruff check --fix` and `ruff format` automatically. Constraint names come from the naming convention on `Base.metadata`, so migrations can refer to them. Autogenerate does not detect everything (e.g. renamed columns or tables show up as drop + add), so always read the generated script.
 
 Plain `uvicorn` is used deliberately, not `uvicorn[standard]` / `fastapi[standard]`: those extras pull in C extensions (pyyaml, httptools, …) without Python 3.15 wheels, which fail to build on Windows without MSVC.
+
+## Container image and deployment
+
+`Dockerfile` builds a two-stage image (`python:3.15-slim-trixie`, uv pinned to the local version): the build stage runs `uv sync --locked --no-dev --no-editable`, the runtime stage only gets the venv, `pyproject.toml` and `migrations/` and runs uvicorn on port 8000 as a non-root user. `.dockerignore` is an allowlist; add new top-level files the build needs there.
+
+`compose.yaml` is for deployment (unlike `scripts/docker-compose.yaml`, the local dev database): `db` (postgres:18, volume on `/var/lib/postgresql`, no published port), `migrate` (runs `alembic upgrade head`, then exits) and `api` (starts once `migrate` succeeded). Settings come from `.env` (template: `.env.example`; `POSTGRES_PASSWORD` is required).
+
+```sh
+cp .env.example .env            # set POSTGRES_PASSWORD
+docker compose up -d --build    # this machine has Podman: `podman compose ...` works the same
+docker compose down             # add -v to also delete the database volume
+```

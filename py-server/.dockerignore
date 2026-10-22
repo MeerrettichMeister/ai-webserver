@@ -1,0 +1,10 @@
+# Allowlist: the build context holds only what the image needs (pyproject.toml needs README.md).
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!migrations/
+
+**/__pycache__/
+**/*.py[cod]
