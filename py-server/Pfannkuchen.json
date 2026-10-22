@@ -1,0 +1,18 @@
+{
+    "name": "Pfannkuchen",
+    "ingredients" :[
+{"amount": 400,"unit": "g","ingredient":"Mehl"},
+{"amount":3,"unit":"große","ingredient":"Eier"},
+{"amount":1,"unit":"Priese","ingredient":"Salz"},
+{"amount":750,"unit":"ml","ingredient":"Milch"},
+{"amount":30,"unit":"ml","ingredient":"Mineralwass mit Kohlensäure"}
+    ],
+    "steps": [
+        "Mehl, Eier, Salz und Milch in eine Schüssel geben und zügig zu einem glatten Teig verrühren, bis er Blasen wirft.  Den Teig für etwa 30 Minuten im Kühlschrank ruhen lassen. (So können sich die Zutaten miteinander verbinden und der Teig wird geschmeidig.)  ",
+        "Nach der Ruhezeit einen Schuss Wasser mit Kohlensäure zugeben und nochmals vorsichtig durchrühren.  ",
+        "Pfanne auf die Herdplatte stellen und auf mittlerer Stufe vollständig aufheizen lassen. Dann etwas Butter in die Pfanne geben, schmelzen lassen und gleichmäßig bis an die Pfannenränder schwenken. (Für den ersten Pfannkuchen ruhig etwas mehr Butter nehmen, etwa 1 TL. Für alle weiteren Pfannkuchen reicht dann auch weniger.)  ",
+        "Je nach Pfannengröße eine Kelle Teig in die heiße Pfanne geben und sofort durch Schwenken gleichmäßig bis an die Ränder gleichmäßig verteilen.   ",
+        "Mit dem Wenden des Pfannkuchens so lange warten, bis der Teig in der Mitte der oberen Seite nicht mehr flüssig ist. Dann lässt er sich einfach mit einem Pfannenwender an den Rändern lösen und wenden.",
+        "Die andere Seite des Pfannkuchens wesentlich kürzer goldbraun ausbacken. Mit dem restlichen Teig genauso verfahren."
+    ]
+}

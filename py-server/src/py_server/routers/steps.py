@@ -6,9 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from py_server.db import SessionDep
+from py_server.dto import StepRead, StepUpdate
 from py_server.etags import PRECONDITION_RESPONSES, IfMatchDep, check_if_match, commit_or_412, etag
-from py_server.models import Ingredient, Recipe, Step
-from py_server.schemas import StepRead, StepUpdate
+from py_server.model import Ingredient, Recipe, Step
 
 router = APIRouter(prefix="/recipes/{recipe_id}/steps", tags=["steps"])
 

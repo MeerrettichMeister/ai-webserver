@@ -2,7 +2,9 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 
-DEFAULT_DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/postgres"
+# 127.0.0.1, not localhost: on Windows localhost tries ::1 first, where Docker's port forward
+# accepts the connection but never answers, so connecting hangs.
+DEFAULT_DATABASE_URL = "postgresql+psycopg://postgres:postgres@127.0.0.1:5432/postgres"
 
 
 @dataclass(frozen=True)

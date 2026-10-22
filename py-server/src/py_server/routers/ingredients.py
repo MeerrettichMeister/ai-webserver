@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import StaleDataError
 
 from py_server.db import SessionDep
+from py_server.dto import IngredientRead, IngredientUpdate
 from py_server.etags import (
     PRECONDITION_RESPONSES,
     IfMatchDep,
@@ -14,8 +15,7 @@ from py_server.etags import (
     etag,
     precondition_failed,
 )
-from py_server.models import Ingredient, Recipe
-from py_server.schemas import IngredientCreate, IngredientRead
+from py_server.model import Ingredient, Recipe
 
 router = APIRouter(prefix="/recipes/{recipe_id}/ingredients", tags=["ingredients"])
 
@@ -63,7 +63,7 @@ def get_ingredient(ingredient: IngredientDep, response: Response) -> IngredientR
     },
 )
 def update_ingredient(
-    payload: IngredientCreate,
+    payload: IngredientUpdate,
     ingredient: IngredientDep,
     if_match: IfMatchDep,
     session: SessionDep,

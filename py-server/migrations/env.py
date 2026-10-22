@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from py_server.config import get_settings
-from py_server.models import Base
+from py_server.model import Base
 
 # There is no alembic.ini; log alembic's progress (e.g. "Running upgrade ...") to stderr.
 logging.basicConfig(format="%(levelname)-5.5s [%(name)s] %(message)s", level=logging.WARNING)

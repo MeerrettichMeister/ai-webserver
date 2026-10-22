@@ -1,63 +1,21 @@
 from collections.abc import Sequence
-from typing import Annotated, Self
+from typing import Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
-from pydantic.json_schema import SkipJsonSchema
+from pydantic import BaseModel, Field, model_validator
 
-# An id that may be left out; documented as a plain (not nullable) uuid.
-OptionalId = Annotated[
-    UUID | SkipJsonSchema[None],
-    Field(description="Id of the existing item to update; leave out to add a new one."),
-]
-
-
-class IngredientCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=255)
-    amount: str = Field(max_length=50)
-    unit: str = Field(max_length=50)
-
-
-class IngredientReplace(IngredientCreate):
-    id: OptionalId = None
-
-
-class IngredientRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    name: str
-    amount: str
-    unit: str
-    version: int = Field(description='Send as `If-Match: "<version>"` when updating.')
-
-
-class StepCreate(BaseModel):
-    ingredient: str = Field(description="Name of one of the recipe's `ingredients`.")
-    preparation_method: str = Field(max_length=1000)
-
-
-class StepReplace(StepCreate):
-    id: OptionalId = None
-
-
-class StepUpdate(BaseModel):
-    ingredient_id: UUID = Field(description="Id of one of the recipe's ingredients.")
-    preparation_method: str = Field(max_length=1000)
-
-
-class StepRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: UUID
-    position: int
-    ingredient: IngredientRead
-    preparation_method: str
-    version: int = Field(description='Send as `If-Match: "<version>"` when updating.')
+from py_server.dto.common import ReadModel, Version
+from py_server.dto.ingredient import (
+    IngredientCreate,
+    IngredientFields,
+    IngredientRead,
+    IngredientReplace,
+)
+from py_server.dto.step import StepCreate, StepRead, StepReplace
 
 
 def _check_ingredient_names(
-    ingredients: Sequence[IngredientCreate], steps: Sequence[StepCreate]
+    ingredients: Sequence[IngredientFields], steps: Sequence[StepCreate]
 ) -> None:
     names = [ingredient.name for ingredient in ingredients]
     if duplicates := {name for name in names if names.count(name) > 1}:
@@ -109,11 +67,9 @@ class RecipeReplace(BaseModel):
         return self
 
 
-class RecipeRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
+class RecipeRead(ReadModel):
     id: UUID
     name: str
-    version: int = Field(description='Send as `If-Match: "<version>"` when updating.')
+    version: Version
     ingredients: list[IngredientRead]
     steps: list[StepRead]

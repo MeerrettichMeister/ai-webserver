@@ -9,8 +9,14 @@ A FastAPI recipe API, packaged as `src/py_server` (src layout, built with `uv_bu
 - `main.py`: the FastAPI `app` (it does not create tables; see Migrations)
 - `config.py`: `Settings` read from env (`DATABASE_URL`), via `get_settings()`
 - `db.py`: engine, the per-request `get_session` dependency and `SessionDep`
-- `models.py`: SQLAlchemy ORM: a `Recipe` owns its `Ingredient`s (amount, unit) and ordered `Step`s (each uses one ingredient)
-- `schemas.py`: Pydantic request/response models (`*Create`, `*Read`)
+- `model/`: SQLAlchemy ORM, one module per table (`base.py` holds `Base`): a `Recipe` owns its
+  `Ingredient`s (amount, unit) and ordered `Step`s (each uses one ingredient). Relationship
+  types from other modules are imported under `TYPE_CHECKING`. Import models from
+  `py_server.model`: its `__init__.py` imports every model, so all tables are registered
+- `dto/`: Pydantic request/response bodies, one module per resource, re-exported from
+  `py_server.dto`. Each endpoint has its own body: `*Create` (nested in `POST /recipes`),
+  `*Replace` (nested in `PUT /recipes/{id}`), `*Update` (`PUT`/`PATCH` of that resource) and
+  `*Read` (responses, based on `ReadModel`); `common.py` holds shared types
 - `etags.py`: optimistic locking over HTTP. `Recipe`, `Ingredient` and `Step` have a `version`
   exposed as `ETag`; `PUT` requires a matching `If-Match` (428 if missing, 412 if stale).
   `Recipe.version` covers the whole aggregate: every write to a recipe or its children must call
@@ -47,7 +53,7 @@ Ruff and Pyrefly are in the `dev` dependency group (`uv add --dev <pkg>` for mor
 docker compose -f scripts/docker-compose.yaml up -d
 ```
 
-SQLAlchemy talks to Postgres via psycopg 3 (`psycopg[binary]`, bundles libpq), so connection URLs use the `postgresql+psycopg://` scheme, e.g. `postgresql+psycopg://postgres:postgres@localhost:5432/postgres`. Set `DATABASE_URL` to use a different database.
+SQLAlchemy talks to Postgres via psycopg 3 (`psycopg[binary]`, bundles libpq), so connection URLs use the `postgresql+psycopg://` scheme, e.g. `postgresql+psycopg://postgres:postgres@127.0.0.1:5432/postgres`. Set `DATABASE_URL` to use a different database. Use `127.0.0.1`, not `localhost`: on Windows `localhost` resolves to `::1` first, where the Docker port forward accepts the connection but never answers, so connecting hangs forever.
 
 ## Migrations
 
@@ -55,8 +61,8 @@ Alembic manages the schema. Config is in `pyproject.toml` (`[tool.alembic]`, the
 
 ```sh
 uv run alembic upgrade head                          # apply migrations (run before starting the app)
-uv run alembic revision --autogenerate -m "<what>"   # after changing models.py; review the result
-uv run alembic check                                 # fail if models.py has changes without a migration
+uv run alembic revision --autogenerate -m "<what>"   # after changing model/; review the result
+uv run alembic check                                 # fail if model/ has changes without a migration
 uv run alembic downgrade -1                          # undo the last migration
 ```
 

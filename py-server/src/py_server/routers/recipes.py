@@ -7,6 +7,7 @@ from sqlalchemy import Select, select
 from sqlalchemy.orm import selectinload
 
 from py_server.db import SessionDep
+from py_server.dto import RecipeCreate, RecipeRead, RecipeReplace, RecipeUpdate
 from py_server.etags import (
     PRECONDITION_RESPONSES,
     IfMatchDep,
@@ -14,8 +15,7 @@ from py_server.etags import (
     commit_or_412,
     etag,
 )
-from py_server.models import Ingredient, Recipe, Step
-from py_server.schemas import RecipeCreate, RecipeRead, RecipeReplace, RecipeUpdate
+from py_server.model import Ingredient, Recipe, Step
 
 router = APIRouter(prefix="/recipes", tags=["recipes"])
 
