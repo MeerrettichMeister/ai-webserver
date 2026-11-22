@@ -4,10 +4,21 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "db:pull": "drizzle-kit pull"
   },
-  "dependencies": {},
+  "dependencies": {
+    "dotenv": "^18.0.10",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.19",
+    "pg": "^8.23.1"
+  },
   "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
+    "oxfmt": "^0.79.0",
+    "oxlint": "^1.94.0",
     "typescript": "^6.0.3"
   },
   "private": true
