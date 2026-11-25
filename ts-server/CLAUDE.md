@@ -62,3 +62,40 @@ SQL/meta snapshot into `drizzle/` (generated, plain `.ts`, excluded from formatt
 linting). The config is `drizzle.config.mts`, which drizzle-kit does not find on its own, so pass
 `--config=drizzle.config.mts` to every drizzle-kit command. Its `schema` option points to
 `./src/db/drizzle/schema.ts`, which does not exist; fix that before using `generate`/`push`.
+
+## Security plan (authentication and authorization)
+
+The API's endpoints are protected: **every endpoint requires an authenticated user** unless it is
+explicitly decided otherwise. Keep this in mind for every endpoint you add.
+
+- **Identity provider:** the Keycloak server from `scripts/docker-compose.yaml`. A realm for this
+  app already exists there, with two groups:
+  - `user`: regular users, the default rights.
+  - `moderator`: has more rights than `user`. Treat it as a superset: anything a `user` may do, a
+    `moderator` may do too.
+- **The API does not handle logins or passwords.** Clients get an access token (JWT) from
+  Keycloak and send it as `Authorization: Bearer <token>`. The server only verifies the token
+  (signature against the realm's JWKS at
+  `http://localhost:8080/realms/<realm>/protocol/openid-connect/certs`, plus `exp` and the
+  issuer) and reads the user's groups from it. Hono ships suitable middleware (`hono/jwk`,
+  `hono/jwt`).
+- **Groups are not in the token by default.** Keycloak only puts group membership into access
+  tokens if a _Group Membership_ mapper is configured on the client (or a client scope). The
+  claim name and whether it holds full paths (`/moderator`) or plain names (`moderator`) depend
+  on that mapper. Check the realm configuration before writing the group check.
+- **Status codes:** missing or invalid token → `401 Unauthorized`; valid token but the required
+  group is missing → `403 Forbidden`.
+
+When implementing an endpoint:
+
+1. Decide which group it needs (`user` or `moderator`) and enforce that on the server for each
+   route, e.g. with a shared middleware. Do not rely on the client hiding actions.
+2. Take the user's identity (the token's `sub`) and groups only from the verified token, never
+   from the request body, query or custom headers.
+3. Keep the auth logic in one place (verification + group check) instead of repeating it in
+   handlers, so the rules can be changed for all endpoints at once.
+
+Not yet recorded in the repository: the realm's name, the Keycloak client the API and its clients
+use, and which operations exactly are reserved for `moderator`. Ask before assuming them. The
+realm itself is only stored in Keycloak's database inside the `postgres_data` Docker volume, so
+`docker compose ... down -v` deletes it.
