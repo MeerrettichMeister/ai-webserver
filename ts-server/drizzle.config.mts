@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { defineConfig } from 'drizzle-kit';
 // @ts-expect-error
-import process from "node:process";
+import process from 'node:process';
+
+import { defineConfig } from 'drizzle-kit';
 export default defineConfig({
   dialect: 'postgresql',
   // drizzle-kit pull writes schema.ts and relations.ts into `out`
