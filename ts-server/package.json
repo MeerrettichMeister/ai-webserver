@@ -14,7 +14,9 @@
     "fmt:check": "oxfmt --check",
     "db:pull": "drizzle-kit pull --config=drizzle.config.mts",
     "db:generate": "drizzle-kit generate --config=drizzle.config.mts",
-    "db:migrate": "drizzle-kit migrate --config=drizzle.config.mts"
+    "db:migrate": "drizzle-kit migrate --config=drizzle.config.mts",
+    "db:reset": "node scripts/reset-db.mts && pnpm db:migrate",
+    "dev:reset": "pnpm db:reset && pnpm dev"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.11",
