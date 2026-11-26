@@ -3,6 +3,7 @@ import { HTTPException } from 'hono/http-exception';
 import type { ZodError } from 'zod';
 
 import { createProblemDetails } from './problem-details.mts';
+import { isUniqueViolation } from './recipe/db/errors.mts';
 import { BadRequestError, PreconditionRequiredError } from './recipe/router/errors.mts';
 import { router as recipeRouter } from './recipe/router/recipe-router.mts';
 import {
@@ -19,10 +20,6 @@ app.route('/recipes', recipeRouter);
 app.notFound((c) =>
   createProblemDetails(c, 404, `There is no route ${c.req.method} ${c.req.path}.`),
 );
-
-/** PostgreSQL's unique_violation, e.g. two ingredients of a recipe with the same name. */
-const isUniqueViolation = (error: Error): boolean =>
-  (error.cause as { code?: unknown } | undefined)?.code === '23505';
 
 // oxlint-disable-next-line promise/prefer-await-to-callbacks
 app.onError((error, c) => {

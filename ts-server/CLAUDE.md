@@ -10,7 +10,8 @@ node-postgres (`pg`), Zod (validation). `src/index.mts` starts the server on
 (`src/problem-details.mts`, RFC 9457). `src/recipe/db` exports the Drizzle `db` built from
 `DATABASE_URL` (loaded via `dotenv/config`). There is no test suite yet.
 
-The database has no tables yet: nothing creates the schema (see "Database and Drizzle").
+Before the first start, create the tables and seed data with `pnpm db:migrate` (see "Database and
+Drizzle").
 
 Code is organized by feature, following the Hono example project (`../../hono/src/buch/`):
 `src/recipe/dto/*-dto.mts` are the response DTOs (classes built from Drizzle `$inferSelect`
@@ -53,6 +54,8 @@ pnpm start        # node dist/index.mjs
 pnpm typecheck    # tsc --noEmit
 pnpm lint         # oxlint (.oxlintrc.json); pnpm lint:fix to autofix
 pnpm fmt          # oxfmt (.oxfmtrc.json); pnpm fmt:check to only check
+pnpm db:migrate   # drizzle-kit migrate: apply the pending migrations in drizzle/
+pnpm db:generate  # drizzle-kit generate: new migration from changes to src/recipe/db/schema.mts
 pnpm db:pull      # drizzle-kit pull: introspect the database into drizzle/
 ```
 
@@ -107,11 +110,25 @@ docker compose -f scripts/docker-compose.yaml up -d
 `localhost` in the URL: `localhost` resolves to `::1` first, where the Docker port forward can
 accept the connection and then never answer (see `py-server/CLAUDE.md`).
 
-Drizzle is used database-first so far: `pnpm db:pull` writes `schema.mts`, `relations.mts` and the
-SQL/meta snapshot into `drizzle/` (generated, plain `.ts`, excluded from formatting and partly from
-linting). The config is `drizzle.config.mts`, which drizzle-kit does not find on its own, so pass
-`--config=drizzle.config.mts` to every drizzle-kit command. Its `schema` option points to
-`src/recipe/db`, which does not exist; fix that before using `generate`/`push`.
+The schema is defined in code, `src/recipe/db/schema.mts`, in the PostgreSQL schema `recipes`.
+The database is changed **only through Drizzle migrations** in `drizzle/` (`NNNN_name.sql` plus
+`meta/_journal.json` and snapshots; generated, excluded from formatting and partly from linting):
+
+- `0000_spicy_mentor`: an empty, comment-only leftover of an early `db:pull`; harmless.
+- `0001_create_recipe_tables`: the schema `recipes` with its tables.
+- `0002_seed_sachertorte`: custom SQL inserting `recipes/Sachertorte.json` with the fixed id
+  `5174cc9d-71cb-4d34-a3e9-ce8649192e20` (ingredient and step ids from `gen_random_uuid()`). The
+  SQL was generated once from the JSON; editing the JSON does not change it.
+
+`pnpm db:migrate` applies the pending migrations (recorded in `drizzle.__drizzle_migrations`);
+run it on a fresh database before the first start, the server does not create tables itself.
+After changing `schema.mts`, run `pnpm db:generate --name=<what>` and commit the new migration;
+for data, `pnpm db:generate --custom --name=<what>` creates an empty SQL file to fill in. Never
+edit an applied migration, and do not use `drizzle-kit push`, which bypasses the migration
+history. The config is `drizzle.config.mts`, which drizzle-kit does not find on its own, so pass
+`--config=drizzle.config.mts` to every drizzle-kit command (the scripts do); its
+`schemaFilter: ['recipes']` makes drizzle-kit look only at the `recipes` schema. `drizzle/schema.mts`
+and `drizzle/relations.mts` are the stale output of that early `db:pull`, not the real schema.
 
 ## Security plan (authentication and authorization)
 

@@ -12,7 +12,9 @@
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "db:pull": "drizzle-kit pull --config=drizzle.config.mts"
+    "db:pull": "drizzle-kit pull --config=drizzle.config.mts",
+    "db:generate": "drizzle-kit generate --config=drizzle.config.mts",
+    "db:migrate": "drizzle-kit migrate --config=drizzle.config.mts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.11",
