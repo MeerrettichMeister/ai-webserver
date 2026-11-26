@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-An early-stage TypeScript web server: Hono (HTTP, served by `@hono/node-server` on `PORT`,
-default 3000), Drizzle ORM on node-postgres (`pg`), Zod (validation). `src/index.mts` starts the
-server; `src/app.mts` mounts the routers and maps errors to Problem Details responses
+An early-stage TypeScript web server: Hono (HTTP, served by `@hono/node-server`), Drizzle ORM on
+node-postgres (`pg`), Zod (validation). `src/index.mts` starts the server on
+`https://localhost:<PORT>` (default 3000), see "HTTP/2 and TLS"; `src/app.mts` mounts the routers and maps errors to Problem Details responses
 (`src/problem-details.mts`, RFC 9457). `src/recipe/db` exports the Drizzle `db` built from
 `DATABASE_URL` (loaded via `dotenv/config`). There is no test suite yet.
 
@@ -54,6 +54,26 @@ pnpm typecheck    # tsc --noEmit
 pnpm lint         # oxlint (.oxlintrc.json); pnpm lint:fix to autofix
 pnpm fmt          # oxfmt (.oxfmtrc.json); pnpm fmt:check to only check
 pnpm db:pull      # drizzle-kit pull: introspect the database into drizzle/
+```
+
+## HTTP/2 and TLS
+
+The server speaks **HTTP/2 over TLS** (`createSecureServer` from `node:http2`); there is no plain
+HTTP port. Clients choose the protocol in the TLS handshake (ALPN): HTTP/2 if they support it,
+otherwise HTTP/1.1 (`allowHTTP1`, e.g. for Bruno or Schannel-based tools). The minimum TLS version
+stays at Node's default, 1.2, because Windows 10's Schannel (used by its `curl.exe` and PowerShell)
+has no TLS 1.3. Git Bash's and Windows' `curl` have no HTTP/2 support, so they always use
+HTTP/1.1; test HTTP/2 with a browser or Node's `http2.connect`.
+
+The certificate is a self-signed development certificate for `localhost`, `127.0.0.1` and `::1`
+in `tls/` (`key.pem`, `cert.pem`, valid until 2029-02). Clients have to trust `tls/cert.pem` or
+skip verification (`curl -k`). To create a new one (in Git Bash, `MSYS_NO_PATHCONV=1` keeps
+`/CN=...` from being turned into a Windows path):
+
+```sh
+MSYS_NO_PATHCONV=1 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+  -keyout tls/key.pem -out tls/cert.pem -days 825 -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:::1"
 ```
 
 ## TypeScript conventions
@@ -128,7 +148,7 @@ route. It verifies the token with `hono/jwk` (RS256, issuer, `aud`, `exp`; the J
 5 minutes) and then checks the groups. The verified claims are in `c.get('jwtPayload')`.
 
 - **Realm and client** (from `.env`): realm `ai-webserver`, client `ts-server` (public, standard
-  flow and direct access grants, redirect `http://localhost:3000/*`). The client has a _Group
+  flow and direct access grants, redirect `https://localhost:3000/*`). The client has a _Group
   Membership_ mapper writing plain group names into the `groups` claim and an audience mapper
   putting `ts-server` into `aud`, which the server requires.
 - **Issuer:** Keycloak runs without a fixed hostname, so `iss` names the host the client asked for
