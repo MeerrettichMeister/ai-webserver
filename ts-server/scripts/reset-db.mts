@@ -7,14 +7,14 @@
 import 'dotenv/config';
 import process from 'node:process';
 
-import pg from 'pg';
+import { Client } from 'pg';
 
 const url = process.env.DATABASE_URL;
 if (url === undefined) {
   throw new Error('DATABASE_URL is not set (see .env).');
 }
 
-const client = new pg.Client({ connectionString: url });
+const client = new Client({ connectionString: url });
 await client.connect();
 try {
   await client.query('DROP SCHEMA IF EXISTS recipes CASCADE');

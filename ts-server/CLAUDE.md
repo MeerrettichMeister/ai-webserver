@@ -57,7 +57,13 @@ pnpm fmt          # oxfmt (.oxfmtrc.json); pnpm fmt:check to only check
 pnpm db:migrate   # drizzle-kit migrate: apply the pending migrations in drizzle/
 pnpm db:generate  # drizzle-kit generate: new migration from changes to src/recipe/db/schema.mts
 pnpm db:pull      # drizzle-kit pull: introspect the database into drizzle/
+pnpm db:reset     # scripts/reset-db.mts drops the schemas recipes + drizzle, then db:migrate
+pnpm dev:reset    # db:reset, then dev
 ```
+
+`db:reset` deletes all app data (only the PostgreSQL schemas `recipes` and `drizzle`, nothing else
+in the database). The WebStorm run configurations in `.run/` (shared, committed) are "Start server"
+(`dev`) and "Reset database and start server" (`dev:reset`).
 
 ## HTTP/2 and TLS
 
@@ -133,15 +139,17 @@ and `drizzle/relations.mts` are the stale output of that early `db:pull`, not th
 ## Security plan (authentication and authorization)
 
 The API's endpoints are protected: **every endpoint requires an authenticated user** unless it is
-explicitly decided otherwise. Keep this in mind for every endpoint you add.
+explicitly decided otherwise. Keep this in mind for every endpoint you add. The one exception so
+far is the login, `POST /auth`, which cannot require a token since it is how clients get one.
 
 - **Identity provider:** the Keycloak server from `scripts/docker-compose.yaml`. A realm for this
   app already exists there, with two groups:
   - `user`: regular users, the default rights.
   - `moderator`: has more rights than `user`. Treat it as a superset: anything a `user` may do, a
     `moderator` may do too.
-- **The API does not handle logins or passwords.** Clients get an access token (JWT) from
-  Keycloak and send it as `Authorization: Bearer <token>`. The server only verifies the token
+- **Logins go to Keycloak; the API never checks or stores passwords.** Clients get an access token
+  (JWT) either from Keycloak directly or through `POST /auth` (below), and send it as
+  `Authorization: Bearer <token>`. The server verifies the token
   (signature against the realm's JWKS at
   `http://localhost:8080/realms/<realm>/protocol/openid-connect/certs`, plus `exp` and the
   issuer) and reads the user's groups from it. Hono ships suitable middleware (`hono/jwk`,
@@ -164,7 +172,17 @@ When implementing an endpoint:
 
 The implementation is `src/security/auth.mts`: put `requireGroup('user' | 'moderator')` on every
 route. It verifies the token with `hono/jwk` (RS256, issuer, `aud`, `exp`; the JWKS is cached for
-5 minutes) and then checks the groups. The verified claims are in `c.get('jwtPayload')`.
+5 minutes) and then checks the groups. The verified claims are in `c.get('jwtPayload')`. The
+Keycloak URLs and client id come from `.env` via `src/security/keycloak-config.mts`.
+
+**Login (`src/security/auth-router.mts`, `keycloak-service.mts`):** `POST /auth` with
+`{ "username", "password" }` forwards the credentials to Keycloak's token endpoint (password
+grant, i.e. "Direct access grants" of the client `ts-server`) and answers `200` with
+`access_token`, `token_type`, `expires_in`, `refresh_token` and `refresh_expires_in`
+(`Cache-Control: no-store`). Wrong credentials, a disabled account or pending required actions
+(Keycloak's `invalid_grant`) give `401`; Keycloak unreachable or failing gives `502`; invalid JSON
+`400`, a missing field `422`. Never log the request body there. Tokens from `/auth` always carry the
+issuer the server expects, as the server asks Keycloak at `KEYCLOAK_URL`.
 
 - **Realm and client** (from `.env`): realm `ai-webserver`, client `ts-server` (public, standard
   flow and direct access grants, redirect `https://localhost:3000/*`). The client has a _Group

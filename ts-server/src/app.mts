@@ -11,10 +11,13 @@ import {
   NotFoundError,
   PreconditionFailedError,
 } from './recipe/service/errors.mts';
+import { router as authRouter } from './security/auth-router.mts';
+import { InvalidCredentialsError, KeycloakError } from './security/errors.mts';
 
 /** The web application: routes and the mapping of errors to HTTP responses. */
 export const app = new Hono();
 
+app.route('/auth', authRouter);
 app.route('/recipes', recipeRouter);
 
 app.notFound((c) =>
@@ -55,6 +58,13 @@ app.onError((error, c) => {
   }
   if (isUniqueViolation(error)) {
     return createProblemDetails(c, 409, 'The change conflicts with existing data of the recipe.');
+  }
+  if (error instanceof InvalidCredentialsError) {
+    return createProblemDetails(c, 401, error.message);
+  }
+  if (error instanceof KeycloakError) {
+    console.error(error);
+    return createProblemDetails(c, 502, 'The login service is not available.');
   }
 
   console.error(error);

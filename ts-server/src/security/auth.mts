@@ -7,9 +7,6 @@
  * Keycloak client fills with plain group names.
  */
 
-import 'dotenv/config';
-import process from 'node:process';
-
 import type { MiddlewareHandler } from 'hono';
 import { every } from 'hono/combine';
 import { createMiddleware } from 'hono/factory';
@@ -17,17 +14,7 @@ import { HTTPException } from 'hono/http-exception';
 import { jwk } from 'hono/jwk';
 import type { HonoJsonWebKey } from 'hono/utils/jwt/jws';
 
-const host = process.env.KEYCLOAK_URL ?? 'localhost';
-const port = process.env.KEYCLOAK_PORT ?? '8080';
-const realm = process.env.KEYCLOAK_REALM ?? 'ai-webserver';
-const clientId = process.env.KEYCLOAK_CLIENT_ID ?? 'ts-server';
-
-/**
- * The `iss` of the realm's tokens. Keycloak runs without a fixed hostname, so it names the host
- * the client asked for the token: clients must use this same host.
- */
-export const issuer = `http://${host}:${port}/realms/${realm}`;
-const jwksUri = `${issuer}/protocol/openid-connect/certs`;
+import { clientId, issuer, jwksUri } from './keycloak-config.mts';
 
 /** The realm's signing keys are fetched at most this often (Keycloak may rotate them). */
 const JWKS_CACHE_MS = 5 * 60 * 1000;

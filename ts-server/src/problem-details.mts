@@ -11,6 +11,7 @@ const TITLES: Partial<Record<ContentfulStatusCode, string>> = {
   422: 'Unprocessable Content',
   428: 'Precondition Required',
   500: 'Internal Server Error',
+  502: 'Bad Gateway',
 };
 
 /**
