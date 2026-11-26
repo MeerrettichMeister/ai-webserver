@@ -15,6 +15,7 @@
     "db:pull": "drizzle-kit pull --config=drizzle.config.mts"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.11",
     "dotenv": "^18.0.10",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.19",

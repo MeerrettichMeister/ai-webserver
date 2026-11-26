@@ -1,0 +1,65 @@
+import { Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
+import type { ZodError } from 'zod';
+
+import { createProblemDetails } from './problem-details.mts';
+import { BadRequestError, PreconditionRequiredError } from './recipe/router/errors.mts';
+import { router as recipeRouter } from './recipe/router/recipe-router.mts';
+import {
+  InvalidReferenceError,
+  NotFoundError,
+  PreconditionFailedError,
+} from './recipe/service/errors.mts';
+
+/** The web application: routes and the mapping of errors to HTTP responses. */
+export const app = new Hono();
+
+app.route('/recipes', recipeRouter);
+
+app.notFound((c) =>
+  createProblemDetails(c, 404, `There is no route ${c.req.method} ${c.req.path}.`),
+);
+
+/** PostgreSQL's unique_violation, e.g. two ingredients of a recipe with the same name. */
+const isUniqueViolation = (error: Error): boolean =>
+  (error.cause as { code?: unknown } | undefined)?.code === '23505';
+
+// oxlint-disable-next-line promise/prefer-await-to-callbacks
+app.onError((error, c) => {
+  if (error instanceof HTTPException) {
+    // 401 from the token verification, 403 from the group check (security/auth.mts).
+    if (error.status === 401 || error.status === 403) {
+      const response = createProblemDetails(c, error.status, error.message);
+      const challenge = error.getResponse().headers.get('WWW-Authenticate');
+      if (challenge !== null) {
+        response.headers.set('WWW-Authenticate', challenge);
+      }
+      return response;
+    }
+    return error.getResponse();
+  }
+  if (error instanceof NotFoundError) {
+    return createProblemDetails(c, 404, error.message);
+  }
+  if (error instanceof BadRequestError) {
+    return createProblemDetails(c, 400, error.message);
+  }
+  if (error.name === 'ZodError') {
+    return createProblemDetails(c, 422, (error as ZodError).issues);
+  }
+  if (error instanceof InvalidReferenceError) {
+    return createProblemDetails(c, 422, error.message);
+  }
+  if (error instanceof PreconditionRequiredError) {
+    return createProblemDetails(c, 428, error.message);
+  }
+  if (error instanceof PreconditionFailedError) {
+    return createProblemDetails(c, 412, error.message);
+  }
+  if (isUniqueViolation(error)) {
+    return createProblemDetails(c, 409, 'The change conflicts with existing data of the recipe.');
+  }
+
+  console.error(error);
+  return createProblemDetails(c, 500);
+});

@@ -4,10 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-An early-stage TypeScript web server: Hono (HTTP), Drizzle ORM on node-postgres (`pg`), Zod
-(validation). So far only the scaffolding exists: `src/index.mts` just logs a message, and
-`src/recipe/db` exports a Drizzle `db` built from `DATABASE_URL` (loaded via `dotenv/config`)
-that nothing uses yet. There is no HTTP app and no test suite yet.
+An early-stage TypeScript web server: Hono (HTTP, served by `@hono/node-server` on `PORT`,
+default 3000), Drizzle ORM on node-postgres (`pg`), Zod (validation). `src/index.mts` starts the
+server; `src/app.mts` mounts the routers and maps errors to Problem Details responses
+(`src/problem-details.mts`, RFC 9457). `src/recipe/db` exports the Drizzle `db` built from
+`DATABASE_URL` (loaded via `dotenv/config`). There is no test suite yet.
+
+The database has no tables yet: nothing creates the schema (see "Database and Drizzle").
 
 Code is organized by feature, following the Hono example project (`../../hono/src/buch/`):
 `src/recipe/dto/*-dto.mts` are the response DTOs (classes built from Drizzle `$inferSelect`
@@ -24,6 +27,15 @@ job. Each function takes an optional `Executor` as its last argument: pass the `
 aggregate, but only `incrementVersion` changes it, so call it in the same transaction as every
 write to a recipe, its details, ingredients or steps. Ingredient and step updates bump their own
 row versions as well.
+
+`src/recipe/service/` has the business logic (`recipe-service.mts` reads, `recipe-write-service.mts`
+writes, each write in one transaction) and throws the errors in `service/errors.mts`.
+`src/recipe/router/recipe-router.mts` is mounted at `/recipes`; its contract follows py-server:
+`GET /` (list, `?search=`), `GET /:id` (`ETag`, `304` on `If-None-Match`), `POST /` (`201`, empty body,
+the new recipe's URL in `Location`), `PUT /:id` (replace) and `PATCH /:id` (rename). Writes require `If-Match` (`428` if
+missing, `412` if not the current version; `src/etag.mts`) and answer with the recipe and its new
+`ETag`. Invalid JSON is `400`, a failed Zod validation or an unknown ingredient/step id `422`, a
+unique violation (e.g. two ingredients swapping names in one `PUT`) `409`.
 
 The git repository root is the parent directory (`ai-webserver/`). This project lives in
 `ts-server/`. The sibling `py-server/` is a separate FastAPI recipe API with its own `CLAUDE.md`.
@@ -111,7 +123,19 @@ When implementing an endpoint:
 3. Keep the auth logic in one place (verification + group check) instead of repeating it in
    handlers, so the rules can be changed for all endpoints at once.
 
-Not yet recorded in the repository: the realm's name, the Keycloak client the API and its clients
-use, and which operations exactly are reserved for `moderator`. Ask before assuming them. The
-realm itself is only stored in Keycloak's database inside the `postgres_data` Docker volume, so
-`docker compose ... down -v` deletes it.
+The implementation is `src/security/auth.mts`: put `requireGroup('user' | 'moderator')` on every
+route. It verifies the token with `hono/jwk` (RS256, issuer, `aud`, `exp`; the JWKS is cached for
+5 minutes) and then checks the groups. The verified claims are in `c.get('jwtPayload')`.
+
+- **Realm and client** (from `.env`): realm `ai-webserver`, client `ts-server` (public, standard
+  flow and direct access grants, redirect `http://localhost:3000/*`). The client has a _Group
+  Membership_ mapper writing plain group names into the `groups` claim and an audience mapper
+  putting `ts-server` into `aud`, which the server requires.
+- **Issuer:** Keycloak runs without a fixed hostname, so `iss` names the host the client asked for
+  the token. Clients must get tokens from the same host as `KEYCLOAK_URL` (`localhost`), or every
+  token is rejected with `401`.
+- **Rights:** reading recipes needs `user`; creating, replacing and renaming them needs
+  `moderator`. Ask before assuming the group for new operations.
+
+The realm and its client are only stored in Keycloak's database inside the `postgres_data` Docker
+volume, so `docker compose ... down -v` deletes them.

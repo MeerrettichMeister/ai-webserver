@@ -6,7 +6,7 @@
  * the same transaction.
  */
 
-import { and, asc, eq, notInArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, notInArray, sql } from 'drizzle-orm';
 
 import { db } from '../db/index.mts';
 import { step } from '../db/schema.mts';
@@ -65,15 +65,23 @@ export const update = async (
 };
 
 /**
- * Negates the positions of all steps of the recipe. `(recipe_id, position)` is unique and the
- * constraint is checked per row, so reordering steps in place (e.g. swapping 1 and 2) fails; call
- * this first in the same transaction, then {@linkcode update} every step to its new position.
+ * Negates the positions of the given steps of the recipe. `(recipe_id, position)` is unique and
+ * the constraint is checked per row, so reordering steps in place (e.g. swapping 1 and 2) fails;
+ * call this first for the steps that move, in the same transaction, then {@linkcode update} each
+ * of them to its new position.
  */
-export const releasePositions = async (recipeId: string, ex: Executor = db): Promise<void> => {
+export const releasePositions = async (
+  recipeId: string,
+  ids: readonly string[],
+  ex: Executor = db,
+): Promise<void> => {
+  if (ids.length === 0) {
+    return;
+  }
   await ex
     .update(step)
     .set({ position: sql`-${step.position}` })
-    .where(eq(step.recipeId, recipeId));
+    .where(and(eq(step.recipeId, recipeId), inArray(step.id, [...ids])));
 };
 
 /**
