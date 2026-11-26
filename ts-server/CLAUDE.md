@@ -188,6 +188,9 @@ issuer the server expects, as the server asks Keycloak at `KEYCLOAK_URL`.
   flow and direct access grants, redirect `https://localhost:3000/*`). The client has a _Group
   Membership_ mapper writing plain group names into the `groups` claim and an audience mapper
   putting `ts-server` into `aud`, which the server requires.
+- **Users:** `recipe-admin` (group `moderator`). The realm's user profile has email, first and last
+  name as optional. If they are required again, Keycloak refuses password logins of users without
+  them ("Account is not fully set up", `invalid_grant`), which `/auth` answers with `401`.
 - **Issuer:** Keycloak runs without a fixed hostname, so `iss` names the host the client asked for
   the token. Clients must get tokens from the same host as `KEYCLOAK_URL` (`localhost`), or every
   token is rejected with `401`.
