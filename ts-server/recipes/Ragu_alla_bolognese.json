@@ -1,0 +1,28 @@
+{
+    "name": "Ragù alla bolognese",
+    "details": {"servings": 4, "preparation_time_minutes": 210, "difficulty": "medium"},
+    "ingredients": [
+        {"amount": 300, "unit": "g", "ingredient": "Rinderhackfleisch (grob gewolft)"},
+        {"amount": 150, "unit": "g", "ingredient": "Pancetta"},
+        {"amount": 50, "unit": "g", "ingredient": "Karotte"},
+        {"amount": 50, "unit": "g", "ingredient": "Staudensellerie"},
+        {"amount": 50, "unit": "g", "ingredient": "Zwiebel"},
+        {"amount": 3, "unit": "EL", "ingredient": "Olivenöl"},
+        {"amount": 125, "unit": "ml", "ingredient": "trockener Weißwein"},
+        {"amount": 300, "unit": "g", "ingredient": "passierte Tomaten"},
+        {"amount": 250, "unit": "ml", "ingredient": "Fleischbrühe"},
+        {"amount": 250, "unit": "ml", "ingredient": "Vollmilch"},
+        {"amount": 1, "unit": "TL", "ingredient": "Salz"},
+        {"amount": 0.5, "unit": "TL", "ingredient": "Pfeffer, frisch gemahlen"},
+        {"amount": 500, "unit": "g", "ingredient": "Tagliatelle"}
+    ],
+    "steps": [
+        "Die Pancetta in sehr kleine Würfel schneiden. Karotte, Staudensellerie und Zwiebel schälen bzw. putzen und fein würfeln (Soffritto).",
+        "Das Olivenöl in einem schweren Topf erhitzen und die Pancetta darin bei mittlerer Hitze auslassen. Das Gemüse zugeben und unter Rühren ca. 8–10 Minuten weich dünsten, ohne dass es Farbe nimmt.",
+        "Die Hitze erhöhen, das Hackfleisch zugeben und unter Rühren krümelig anbraten, bis es leicht zu brutzeln beginnt und keine Flüssigkeit mehr im Topf ist.",
+        "Mit dem Weißwein ablöschen und so lange köcheln lassen, bis er fast vollständig verdampft ist.",
+        "Die passierten Tomaten einrühren, die Hitze auf kleinste Stufe reduzieren und das Ragù halb zugedeckt ca. 2–3 Stunden sanft schmoren lassen. Zwischendurch immer wieder etwas Brühe angießen, sobald die Sauce zu dick wird.",
+        "Gegen Ende der Garzeit die Milch nach und nach einrühren und einköcheln lassen. Sie macht das Ragù mild und rund. Mit Salz und Pfeffer abschmecken.",
+        "Die Tagliatelle in reichlich Salzwasser al dente kochen, abgießen und direkt mit dem Ragù vermengen. Nach Belieben mit frisch geriebenem Parmigiano Reggiano servieren."
+    ]
+}

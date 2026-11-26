@@ -1,0 +1,28 @@
+{
+    "name": "Züricher Geschnetzeltes",
+    "details": {"servings": 4, "preparation_time_minutes": 40, "difficulty": "medium"},
+    "ingredients": [
+        {"amount": 600, "unit": "g", "ingredient": "Kalbfleisch (Oberschale oder Filet)"},
+        {"amount": 250, "unit": "g", "ingredient": "Champignons"},
+        {"amount": 1, "unit": "mittelgroße", "ingredient": "Zwiebel"},
+        {"amount": 1, "unit": "EL", "ingredient": "Öl"},
+        {"amount": 2, "unit": "EL", "ingredient": "Butter"},
+        {"amount": 1, "unit": "EL", "ingredient": "Mehl"},
+        {"amount": 100, "unit": "ml", "ingredient": "trockener Weißwein"},
+        {"amount": 150, "unit": "ml", "ingredient": "Kalbsfond"},
+        {"amount": 200, "unit": "ml", "ingredient": "Sahne"},
+        {"amount": 1, "unit": "TL", "ingredient": "Zitronensaft"},
+        {"amount": 1, "unit": "TL", "ingredient": "Salz"},
+        {"amount": 0.5, "unit": "TL", "ingredient": "Pfeffer, frisch gemahlen"},
+        {"amount": 2, "unit": "EL", "ingredient": "Petersilie, fein gehackt"}
+    ],
+    "steps": [
+        "Das Kalbfleisch trocken tupfen und quer zur Faser in feine, etwa 5 mm dünne Streifen schneiden. Die Champignons putzen und in Scheiben schneiden, die Zwiebel fein würfeln.",
+        "Öl in einer großen Pfanne stark erhitzen. Das Fleisch portionsweise nur kurz (ca. 1–2 Minuten) rundum anbraten, damit es nicht Wasser zieht. Herausnehmen, mit Salz und Pfeffer würzen und beiseitestellen.",
+        "Die Hitze reduzieren, die Butter in die Pfanne geben und die Zwiebel darin glasig dünsten. Die Champignons zugeben und mitbraten, bis die austretende Flüssigkeit verdampft ist.",
+        "Das Mehl darüberstäuben und kurz mitschwitzen. Mit dem Weißwein ablöschen und den Bratensatz vom Pfannenboden lösen. Den Kalbsfond zugießen und etwas einkochen lassen.",
+        "Die Sahne einrühren und die Sauce bei mittlerer Hitze sämig einköcheln lassen. Mit Salz, Pfeffer und Zitronensaft abschmecken.",
+        "Das Fleisch samt ausgetretenem Fleischsaft zurück in die Sauce geben und nur noch erwärmen, nicht mehr kochen lassen, damit es zart bleibt.",
+        "Mit Petersilie bestreuen und sofort servieren. Klassisch dazu passt Rösti."
+    ]
+}

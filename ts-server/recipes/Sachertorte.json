@@ -1,0 +1,31 @@
+{
+    "name": "Sachertorte",
+    "details": {"servings": 12, "preparation_time_minutes": 150, "difficulty": "hard"},
+    "ingredients": [
+        {"amount": 130, "unit": "g", "ingredient": "Butter, zimmerwarm"},
+        {"amount": 110, "unit": "g", "ingredient": "Puderzucker"},
+        {"amount": 1, "unit": "Päckchen", "ingredient": "Vanillezucker"},
+        {"amount": 6, "unit": "Stück", "ingredient": "Eier, getrennt"},
+        {"amount": 130, "unit": "g", "ingredient": "Zartbitterkuvertüre (für den Teig)"},
+        {"amount": 1, "unit": "Prise", "ingredient": "Salz"},
+        {"amount": 110, "unit": "g", "ingredient": "Kristallzucker"},
+        {"amount": 130, "unit": "g", "ingredient": "Mehl"},
+        {"amount": 200, "unit": "g", "ingredient": "Marillenmarmelade (Aprikosenkonfitüre)"},
+        {"amount": 200, "unit": "g", "ingredient": "Zucker (für die Glasur)"},
+        {"amount": 125, "unit": "ml", "ingredient": "Wasser (für die Glasur)"},
+        {"amount": 150, "unit": "g", "ingredient": "Zartbitterkuvertüre (für die Glasur)"},
+        {"amount": 200, "unit": "ml", "ingredient": "Schlagsahne (zum Servieren)"}
+    ],
+    "steps": [
+        "Den Backofen auf 170 °C Ober-/Unterhitze vorheizen. Den Boden einer Springform (24 cm) mit Backpapier auslegen, den Rand leicht einfetten und mit Mehl bestäuben.",
+        "Die Kuvertüre für den Teig grob hacken und über einem warmen Wasserbad schmelzen. Anschließend etwas abkühlen lassen, sie sollte nur noch lauwarm sein.",
+        "Butter mit Puderzucker und Vanillezucker cremig-schaumig rühren. Die Eigelbe einzeln unterrühren, dann die lauwarme Schokolade einrühren.",
+        "Die Eiweiße mit einer Prise Salz anschlagen, dabei nach und nach den Kristallzucker einrieseln lassen und zu einem festen, glänzenden Schnee schlagen.",
+        "Den Eischnee abwechselnd mit dem gesiebten Mehl vorsichtig unter die Schokoladenmasse heben. Nicht rühren, damit die Masse luftig bleibt.",
+        "Den Teig in die Form füllen, glatt streichen und im Ofen ca. 55–60 Minuten backen (Stäbchenprobe). Die Torte in der Form kurz abkühlen lassen, dann auf ein Gitter stürzen und am besten über Nacht vollständig auskühlen lassen.",
+        "Die Torte waagerecht halbieren. Die Marmelade erwärmen, glatt rühren und den unteren Boden damit bestreichen. Den oberen Boden auflegen und die gesamte Torte (Oberfläche und Rand) dünn mit der restlichen Marmelade einstreichen. Kurz antrocknen lassen.",
+        "Für die Glasur Zucker und Wasser aufkochen und ca. 5–6 Minuten sprudelnd kochen lassen. Etwas abkühlen lassen, dann die gehackte Kuvertüre darin schmelzen und so lange rühren, bis die Glasur dickflüssig wird und gleichmäßig glänzt.",
+        "Die Glasur in einem Zug über die Torte gießen und mit einer Palette rasch glatt streichen, auch am Rand. Die Glasur fest werden lassen, nicht im Kühlschrank, damit sie glänzend bleibt.",
+        "Die Sachertorte in Stücke schneiden und mit ungesüßter Schlagsahne servieren."
+    ]
+}
