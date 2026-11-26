@@ -16,6 +16,15 @@ rows, mapping camelCase columns to the API's snake_case fields),
 `*Create`/`*Update`/`*Replace` schemas derived from it and compiled with `z.compile`). The API has
 no pagination.
 
+`src/recipe/repository/*-repository.mts` hold the database access (the example has none; its
+services query Drizzle directly). They export plain async functions that take and return Drizzle
+rows (`$inferInsert`/`$inferSelect`, camelCase); mapping to DTOs and API fields is the service's
+job. Each function takes an optional `Executor` as its last argument: pass the `tx` of
+`db.transaction(...)` to make several calls atomic. The recipe `version` covers the whole
+aggregate, but only `incrementVersion` changes it, so call it in the same transaction as every
+write to a recipe, its details, ingredients or steps. Ingredient and step updates bump their own
+row versions as well.
+
 The git repository root is the parent directory (`ai-webserver/`). This project lives in
 `ts-server/`. The sibling `py-server/` is a separate FastAPI recipe API with its own `CLAUDE.md`.
 
