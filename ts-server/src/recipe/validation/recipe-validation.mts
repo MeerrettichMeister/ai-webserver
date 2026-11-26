@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 import { IngredientCreateSchema, IngredientReplaceSchema } from './ingredient-validation.mts';
-import { RecipeDetailsSchema } from './recipe-details-validation.mts';
+import { ReadOnlyTimestamps } from './read-only-fields.mts';
+import { RecipeDetailsReplaceSchema, RecipeDetailsSchema } from './recipe-details-validation.mts';
 import { PreparationMethodSchema, StepReplaceSchema } from './step-validation.mts';
 
 const isUnique = (values: readonly unknown[]): boolean => new Set(values).size === values.length;
@@ -43,14 +44,16 @@ export const RecipeUpdateSchema = z.compile(RecipeSchema.pick({ name: true })).r
  * Ingredient names must be unique, and so must the ids of the ingredients and of the steps.
  *
  * The response of `GET /recipes/:id` is accepted as it is, so clients can change it and send it
- * back: its `id` must then be the one in the URL, and the read-only `version`s and step
- * `position`s are ignored (`If-Match` and the order of `steps` count).
+ * back: its `id` must then be the one in the URL, and the read-only `version`s, step `position`s
+ * and timestamps are ignored (`If-Match` and the order of `steps` count).
  */
 export const RecipeReplaceSchema = z
   .compile(
     RecipeSchema.partial({ id: true })
       .extend({
         version: z.int().gte(0).optional(),
+        ...ReadOnlyTimestamps,
+        details: RecipeDetailsReplaceSchema,
         ingredients: z.array(IngredientReplaceSchema).default([]),
         /** Steps in the order they are performed. */
         steps: z.array(StepReplaceSchema).default([]),

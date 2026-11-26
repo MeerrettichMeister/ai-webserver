@@ -13,13 +13,19 @@ export class IngredientDTO {
   /** Stored exactly (`numeric(10, 3)`) but sent as a plain JSON number: `400`, not `"400.000"`. */
   amount: number;
   unit: string;
+  /** When the ingredient was added (ISO 8601 in JSON). */
+  created_at: Date;
+  /** When the ingredient last changed. */
+  updated_at: Date;
 
   constructor(drizzleObj: IngredientSelect) {
-    const { id, version, name, amount, unit } = drizzleObj;
+    const { id, version, name, amount, unit, createdAt, updatedAt } = drizzleObj;
     this.id = id;
     this.version = version;
     this.ingredient = name;
     this.amount = Number.parseFloat(amount);
     this.unit = unit;
+    this.created_at = createdAt;
+    this.updated_at = updatedAt;
   }
 }

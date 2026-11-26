@@ -34,7 +34,8 @@ writes, each write in one transaction) and throws the errors in `service/errors.
 `src/recipe/router/recipe-router.mts` is mounted at `/recipes`; its contract follows py-server:
 `GET /` (list, `?search=`), `GET /:id` (`ETag`, `304` on `If-None-Match`), `POST /` (`201`, empty body,
 the new recipe's URL in `Location`), `PUT /:id` (replace; accepts a changed `GET /:id` response as it is: its `id` must match the
-URL, the read-only `version`s and step `position`s are ignored, the order of `steps` counts) and
+URL, the read-only `version`s, timestamps and step `position`s are ignored, the order of `steps`
+counts) and
 `PATCH /:id` (rename). Writes require `If-Match` (`428` if
 missing, `412` if not the current version; `src/etag.mts`) and answer with the recipe and its new
 `ETag`. Invalid JSON is `400`, a failed Zod validation or an unknown ingredient/step id `422`, a
@@ -120,13 +121,29 @@ accept the connection and then never answer (see `py-server/CLAUDE.md`).
 
 The schema is defined in code, `src/recipe/db/schema.mts`, in the PostgreSQL schema `recipes`.
 The database is changed **only through Drizzle migrations** in `drizzle/` (`NNNN_name.sql` plus
-`meta/_journal.json` and snapshots; generated, excluded from formatting and partly from linting):
+`meta/_journal.json` and snapshots; generated, excluded from formatting and partly from linting).
+There is no production database yet, so the history was squashed into a single migration,
+`0000_init`: the generated `CREATE` statements for the whole schema, followed by hand-added SQL
+inserting `recipes/Sachertorte.json` with the fixed id `5174cc9d-71cb-4d34-a3e9-ce8649192e20`
+(ingredient and step ids from `gen_random_uuid()`, timestamps from the column defaults). The seed
+SQL was generated once from the JSON; editing the JSON does not change it.
 
-- `0000_spicy_mentor`: an empty, comment-only leftover of an early `db:pull`; harmless.
-- `0001_create_recipe_tables`: the schema `recipes` with its tables.
-- `0002_seed_sachertorte`: custom SQL inserting `recipes/Sachertorte.json` with the fixed id
-  `5174cc9d-71cb-4d34-a3e9-ce8649192e20` (ingredient and step ids from `gen_random_uuid()`). The
-  SQL was generated once from the JSON; editing the JSON does not change it.
+While there is no production database, squashing again is fine: delete `drizzle/0*.sql` and
+`drizzle/meta/`, run `pnpm db:generate --name=init`, append the seed SQL to the new file after a
+`--> statement-breakpoint`, and `pnpm db:reset` every local database (its recorded history no
+longer matches). Once a production database exists, only add new migrations.
+
+**Timestamps:** every table spreads `timestamps` from `schema.mts`. The database fills both on
+insert; `updated_at` gets `now()` through Drizzle's `$onUpdate` on every `UPDATE` made through
+Drizzle, so repository functions need not set it. `now()` is the start of the transaction, so all
+rows of one request share a time. The recipe's `updated_at` covers the whole recipe (like its
+version, since `incrementVersion` updates the row); ingredients and steps only change theirs when
+they actually change. The DTOs return them as `created_at`/`updated_at` (ISO 8601), and `PUT`
+accepts and ignores them (`validation/read-only-fields.mts`).
+
+`drizzle-kit migrate` fails **without an error message** (only exit code 1) if a migration
+fails, e.g. on a database whose tables were created without migrations: check
+`drizzle.__drizzle_migrations` then, and `pnpm db:reset` if the data may go.
 
 `pnpm db:migrate` applies the pending migrations (recorded in `drizzle.__drizzle_migrations`);
 run it on a fresh database before the first start, the server does not create tables itself.

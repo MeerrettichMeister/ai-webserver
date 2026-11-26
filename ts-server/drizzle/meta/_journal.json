@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1795357128855,
-      "tag": "0000_spicy_mentor",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1795700853452,
-      "tag": "0001_create_recipe_tables",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1795700854388,
-      "tag": "0002_seed_sachertorte",
+      "when": 1795702847503,
+      "tag": "0000_init",
       "breakpoints": true
     }
   ]

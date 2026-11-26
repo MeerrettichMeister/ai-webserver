@@ -11,12 +11,18 @@ export class StepDTO {
   position: number;
   /** What to do in this step. */
   preparation_method: string;
+  /** When the step was added (ISO 8601 in JSON). */
+  created_at: Date;
+  /** When the step last changed, including moving to another position. */
+  updated_at: Date;
 
   constructor(drizzleObj: StepSelect) {
-    const { id, version, position, preparationMethod } = drizzleObj;
+    const { id, version, position, preparationMethod, createdAt, updatedAt } = drizzleObj;
     this.id = id;
     this.version = version;
     this.position = position;
     this.preparation_method = preparationMethod;
+    this.created_at = createdAt;
+    this.updated_at = updatedAt;
   }
 }

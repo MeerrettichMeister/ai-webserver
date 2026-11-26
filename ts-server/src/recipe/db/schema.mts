@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import { sql } from 'drizzle-orm';
 import {
   foreignKey,
   index,
@@ -7,12 +8,26 @@ import {
   numeric,
   pgSchema,
   primaryKey,
+  timestamp,
   unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
 export const recipeSchema = pgSchema('recipes');
+
+/**
+ * When a row was created and last changed, in every table. The database sets both with `now()`,
+ * the start of the transaction, so all rows written by one request get the same time.
+ */
+const timestamps = {
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  // Drizzle adds `updated_at = now()` to every UPDATE of the row it makes.
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => sql`now()`),
+};
 
 export const difficultyEnum = recipeSchema.enum('difficulty', ['easy', 'medium', 'hard']);
 
@@ -27,6 +42,8 @@ export const recipe = recipeSchema.table(
     version: integer('version')
       .notNull()
       .$default(() => 1),
+    // `updated_at` also covers the whole aggregate, as `incrementVersion` updates this row.
+    ...timestamps,
   },
   (t) => [
     primaryKey({ name: 'pk_recipe', columns: [t.id] }),
@@ -49,6 +66,7 @@ export const ingredient = recipeSchema.table(
     version: integer('version')
       .notNull()
       .$default(() => 1),
+    ...timestamps,
   },
   (t) => [
     primaryKey({ name: 'pk_ingredient', columns: [t.id] }),
@@ -69,6 +87,7 @@ export const recipeDetails = recipeSchema.table(
     servings: integer('servings').notNull(),
     preparationTimeMinutes: integer('preparation_time_minutes').notNull(),
     difficulty: difficultyEnum('difficulty').notNull(),
+    ...timestamps,
   },
   (t) => [
     primaryKey({ name: 'pk_recipe_details', columns: [t.recipeId] }),
@@ -92,6 +111,7 @@ export const step = recipeSchema.table(
     version: integer('version')
       .notNull()
       .$default(() => 1),
+    ...timestamps,
   },
   (t) => [
     primaryKey({ name: 'pk_step', columns: [t.id] }),
