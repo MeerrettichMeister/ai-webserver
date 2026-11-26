@@ -1,0 +1,9 @@
+# The Dockerfile only copies package.json, the lockfile, tsconfig.json and src/; this keeps the
+# build context small and secrets out of it.
+node_modules
+dist
+tls
+.env
+.git
+.idea
+.run

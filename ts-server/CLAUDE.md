@@ -115,6 +115,23 @@ in a `keycloak` database that `scripts/init-keycloak-db.sql` creates, but only w
 docker compose -f scripts/docker-compose.yaml up -d
 ```
 
+The containers run in **Podman** on this machine (no Docker CLI): use `podman compose ...`, which
+calls `docker-compose` with Podman as the engine.
+
+The server itself is the compose service `ts-server` (profile `app`, so plain `up -d` still starts
+only the database and Keycloak and leaves port 3000 to `pnpm dev`):
+
+```sh
+podman compose -f scripts/docker-compose.yaml --profile app up -d --build ts-server
+```
+
+It is built from `Dockerfile` (multi-stage on `node:26-alpine`: `pnpm build`, then only `dist/`
+and the production dependencies, running as `node`). Its configuration comes from compose
+environment variables (`.env` is not in the image, see `.dockerignore`), the TLS files from the
+mounted `tls/`. It does not migrate: run `pnpm db:migrate` from the host first. In the container,
+`KEYCLOAK_URL` is `keycloak`, so it only accepts tokens issued for `http://keycloak:8080`, which
+`POST /auth` of that server returns; tokens fetched from Keycloak at `localhost:8080` get `401`.
+
 `DATABASE_URL` comes from `.env` (which is committed). On Windows, prefer `127.0.0.1` over
 `localhost` in the URL: `localhost` resolves to `::1` first, where the Docker port forward can
 accept the connection and then never answer (see `py-server/CLAUDE.md`).
