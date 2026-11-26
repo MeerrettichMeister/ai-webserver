@@ -26,7 +26,8 @@ export const parseETags = (header: string, weak: boolean): ExpectedVersion => {
   for (const tag of tags) {
     const match = VERSION_TAG.exec(weak ? tag.replace(/^W\//u, '') : tag);
     if (match !== null) {
-      versions.add(Number(match[1] ?? match[2]));
+      const [, quoted, bare] = match;
+      versions.add(Number(quoted ?? bare));
     }
   }
   return versions;

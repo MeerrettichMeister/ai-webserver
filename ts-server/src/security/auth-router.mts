@@ -6,7 +6,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 
-import { BadRequestError } from '../recipe/router/errors.mts';
+import { readJson } from '../request-body.mts';
 import { login } from './keycloak-service.mts';
 
 export const router = new Hono();
@@ -23,13 +23,7 @@ const LoginSchema = z.compile(
  * (`access_token`, `expires_in`, `refresh_token`, ...), `401` for wrong credentials.
  */
 router.post('/', async (c) => {
-  let body: unknown;
-  try {
-    body = await c.req.json();
-  } catch {
-    throw new BadRequestError('The request body is not valid JSON.');
-  }
-  const { username, password } = LoginSchema.parse(body);
+  const { username, password } = LoginSchema.parse(await readJson(c));
   const tokens = await login(username, password);
   // Tokens must not end up in shared caches.
   c.header('Cache-Control', 'no-store');

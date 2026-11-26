@@ -25,21 +25,13 @@ export type TokenResponse = {
  * @throws KeycloakError if Keycloak is unreachable or fails otherwise.
  */
 export const login = async (username: string, password: string): Promise<TokenResponse> => {
-  let response: Response;
-  try {
-    response = await fetch(tokenUri, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'password',
-        client_id: clientId,
-        username,
-        password,
-      }),
-    });
-  } catch (error) {
+  const response = await fetch(tokenUri, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'password', client_id: clientId, username, password }),
+  }).catch((error: unknown) => {
     throw new KeycloakError('Keycloak is not reachable.', { cause: error });
-  }
+  });
 
   const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
   if (response.ok) {

@@ -22,6 +22,10 @@
     "no-console": "off",
     "no-var": "error",
     "prefer-const": "error",
+    "prefer-template": "error",
+    "object-shorthand": "error",
+    "prefer-destructuring": "error",
+    "import/no-default-export": "error",
     "no-unused-vars": [
       "error",
       {
@@ -50,6 +54,12 @@
         "typescript/consistent-type-imports": "off",
         "import/no-empty-named-blocks": "off",
         "unicorn/require-module-specifiers": "off"
+      }
+    },
+    {
+      "files": ["drizzle.config.mts"],
+      "rules": {
+        "import/no-default-export": "off"
       }
     }
   ],

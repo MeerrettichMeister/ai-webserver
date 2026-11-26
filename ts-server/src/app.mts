@@ -4,13 +4,14 @@ import type { ZodError } from 'zod';
 
 import { createProblemDetails } from './problem-details.mts';
 import { isUniqueViolation } from './recipe/db/errors.mts';
-import { BadRequestError, PreconditionRequiredError } from './recipe/router/errors.mts';
+import { PreconditionRequiredError } from './recipe/router/errors.mts';
 import { router as recipeRouter } from './recipe/router/recipe-router.mts';
 import {
   InvalidReferenceError,
   NotFoundError,
   PreconditionFailedError,
 } from './recipe/service/errors.mts';
+import { BadRequestError } from './request-body.mts';
 import { router as authRouter } from './security/auth-router.mts';
 import { InvalidCredentialsError, KeycloakError } from './security/errors.mts';
 

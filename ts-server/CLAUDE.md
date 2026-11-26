@@ -104,6 +104,14 @@ MSYS_NO_PATHCONV=1 openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime
   are set explicitly; add further `@types/*` packages to `types`.
 - Formatting (oxfmt): 100 columns, single quotes (double in YAML), semicolons, trailing commas,
   imports sorted.
+- Coding practices, enforced by oxlint (`.oxlintrc.json`): **named exports only**
+  (`import/no-default-export`; the one exception is `drizzle.config.mts`, which drizzle-kit reads
+  as a default export), **`const`** (`let` only for values that are really reassigned, such as the
+  JWKS cache; `no-var`, `prefer-const`), **template strings** instead of `+` (`prefer-template`),
+  **shorthand properties** (`object-shorthand`) and **destructuring** (`prefer-destructuring`).
+  Instead of `let x; try { x = ... } catch { throw ... }`, use a helper function or
+  `await promise.catch(...)`.
+- Shared request helpers: `src/request-body.mts` (`readJson`, `BadRequestError` → `400`).
 
 ## Database and Drizzle
 

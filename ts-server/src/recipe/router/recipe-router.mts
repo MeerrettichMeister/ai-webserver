@@ -8,6 +8,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 
 import { etag, type ExpectedVersion, matches, parseETags } from '../../etag.mts';
+import { readJson } from '../../request-body.mts';
 import { requireGroup } from '../../security/auth.mts';
 import { InvalidReferenceError, NotFoundError } from '../service/errors.mts';
 import { findAll, findById } from '../service/recipe-service.mts';
@@ -17,7 +18,7 @@ import {
   RecipeReplaceSchema,
   RecipeUpdateSchema,
 } from '../validation/recipe-validation.mts';
-import { BadRequestError, PreconditionRequiredError } from './errors.mts';
+import { PreconditionRequiredError } from './errors.mts';
 
 export const router = new Hono();
 
@@ -28,15 +29,6 @@ const recipeId = (c: Context): string => {
     throw new NotFoundError(`There is no recipe with id ${c.req.param('id')}.`);
   }
   return result.data;
-};
-
-/** The request body as JSON; it is validated with Zod afterwards. */
-const readJson = async (c: Context): Promise<unknown> => {
-  try {
-    return await c.req.json();
-  } catch {
-    throw new BadRequestError('The request body is not valid JSON.');
-  }
 };
 
 /** The versions named in `If-Match`, which every write requires. */
