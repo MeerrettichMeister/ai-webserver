@@ -6,8 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An early-stage TypeScript web server: Hono (HTTP), Drizzle ORM on node-postgres (`pg`), Zod
 (validation). So far only the scaffolding exists: `src/index.mts` just logs a message, and
-`src/db/index.mts` exports a Drizzle `db` built from `DATABASE_URL` (loaded via `dotenv/config`)
+`src/recipe/db` exports a Drizzle `db` built from `DATABASE_URL` (loaded via `dotenv/config`)
 that nothing uses yet. There is no HTTP app and no test suite yet.
+
+Code is organized by feature, following the Hono example project (`../../hono/src/buch/`):
+`src/recipe/dto/*-dto.mts` are the response DTOs (classes built from Drizzle `$inferSelect`
+rows, mapping camelCase columns to the API's snake_case fields),
+`src/recipe/validation/*-validation.mts` are the request bodies as Zod schemas (a base schema, with
+`*Create`/`*Update`/`*Replace` schemas derived from it and compiled with `z.compile`). The API has
+no pagination.
 
 The git repository root is the parent directory (`ai-webserver/`). This project lives in
 `ts-server/`. The sibling `py-server/` is a separate FastAPI recipe API with its own `CLAUDE.md`.
@@ -61,7 +68,7 @@ Drizzle is used database-first so far: `pnpm db:pull` writes `schema.mts`, `rela
 SQL/meta snapshot into `drizzle/` (generated, plain `.ts`, excluded from formatting and partly from
 linting). The config is `drizzle.config.mts`, which drizzle-kit does not find on its own, so pass
 `--config=drizzle.config.mts` to every drizzle-kit command. Its `schema` option points to
-`./src/db/drizzle/schema.ts`, which does not exist; fix that before using `generate`/`push`.
+`src/recipe/db`, which does not exist; fix that before using `generate`/`push`.
 
 ## Security plan (authentication and authorization)
 
