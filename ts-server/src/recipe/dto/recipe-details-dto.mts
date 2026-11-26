@@ -14,7 +14,7 @@ export class RecipeDetailsDTO {
   difficulty: Difficulty;
   /** When the details were created (ISO 8601 in JSON). */
   created_at: Date;
-  /** When the details last changed (a `PUT` of the recipe always writes them). */
+  /** When servings, time or difficulty last changed. */
   updated_at: Date;
 
   constructor(drizzleObj: RecipeDetailsSelect) {

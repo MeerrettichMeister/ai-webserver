@@ -26,4 +26,3 @@ export const IngredientReplaceSchema = IngredientSchema.partial({ id: true }).ex
 });
 
 export type IngredientCreateType = z.infer<typeof IngredientCreateSchema>;
-export type IngredientReplaceType = z.infer<typeof IngredientReplaceSchema>;

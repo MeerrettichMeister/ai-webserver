@@ -1,7 +1,7 @@
 # Image of the ts-server; build context is ts-server/ (see scripts/docker-compose.yaml).
 # Configuration comes from environment variables (as in .env, which is not copied), and the TLS
 # certificate from a volume at /app/tls (key.pem, cert.pem). Run `pnpm db:migrate` against the
-# database before the first start; the image does not migrate.
+# database before the first start; the image does not migrate, and refuses to start without it.
 
 ARG NODE_VERSION=26
 
@@ -26,6 +26,8 @@ ENV NODE_ENV=production
 COPY --from=prod-deps /app/package.json ./
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+# For the startup check that the database is at the newest migration.
+COPY drizzle/meta/_journal.json ./drizzle/meta/
 USER node
 EXPOSE 3000
 CMD ["node", "dist/index.mjs"]

@@ -18,8 +18,8 @@ const RecipeSchema = z.strictObject({
 });
 
 /**
- * Request body for a new recipe; the seed recipe `seed/Pfannkuchen.json` of the py-server is an
- * example. Ingredient names must be unique.
+ * Request body for a new recipe; the files in `recipes/` (e.g. `Sachertorte.json`) are examples.
+ * Ingredient names must be unique.
  */
 export const RecipeCreateSchema = z
   .compile(

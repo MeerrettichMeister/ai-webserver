@@ -31,7 +31,8 @@ row versions as well.
 
 `src/recipe/service/` has the business logic (`recipe-service.mts` reads, `recipe-write-service.mts`
 writes, each write in one transaction) and throws the errors in `service/errors.mts`.
-`src/recipe/router/recipe-router.mts` is mounted at `/recipes`; its contract follows py-server:
+`src/recipe/router/recipe-router.mts` is mounted at `/recipes`. This implementation is the source
+of truth for the API contract:
 `GET /` (list, `?search=`), `GET /:id` (`ETag`, `304` on `If-None-Match`), `POST /` (`201`, empty body,
 the new recipe's URL in `Location`), `PUT /:id` (replace; accepts a changed `GET /:id` response as it is: its `id` must match the
 URL, the read-only `version`s, timestamps and step `position`s are ignored, the order of `steps`
@@ -42,7 +43,7 @@ missing, `412` if not the current version; `src/etag.mts`) and answer with the r
 unique violation (e.g. two ingredients swapping names in one `PUT`) `409`.
 
 The git repository root is the parent directory (`ai-webserver/`). This project lives in
-`ts-server/`. The sibling `py-server/` is a separate FastAPI recipe API with its own `CLAUDE.md`.
+`ts-server/`.
 
 ## Commands
 
@@ -134,7 +135,7 @@ mounted `tls/`. It does not migrate: run `pnpm db:migrate` from the host first. 
 
 `DATABASE_URL` comes from `.env` (which is committed). On Windows, prefer `127.0.0.1` over
 `localhost` in the URL: `localhost` resolves to `::1` first, where the Docker port forward can
-accept the connection and then never answer (see `py-server/CLAUDE.md`).
+accept the connection and then never answer.
 
 The schema is defined in code, `src/recipe/db/schema.mts`, in the PostgreSQL schema `recipes`.
 The database is changed **only through Drizzle migrations** in `drizzle/` (`NNNN_name.sql` plus
@@ -151,26 +152,33 @@ While there is no production database, squashing again is fine: delete `drizzle/
 longer matches). Once a production database exists, only add new migrations.
 
 **Timestamps:** every table spreads `timestamps` from `schema.mts`. The database fills both on
-insert; `updated_at` gets `now()` through Drizzle's `$onUpdate` on every `UPDATE` made through
-Drizzle, so repository functions need not set it. `now()` is the start of the transaction, so all
-rows of one request share a time. The recipe's `updated_at` covers the whole recipe (like its
-version, since `incrementVersion` updates the row); ingredients and steps only change theirs when
-they actually change. The DTOs return them as `created_at`/`updated_at` (ISO 8601), and `PUT`
-accepts and ignores them (`validation/read-only-fields.mts`).
+insert; `updated_at` gets `greatest(now(), "updated_at")` through Drizzle's `$onUpdate` on every
+`UPDATE` made through Drizzle, so repository functions need not set it. `now()` is the start of
+the transaction, so all rows of one request normally share a time; `greatest` keeps `updated_at`
+from going backwards when an earlier-started transaction writes later. The recipe's `updated_at`
+covers the whole recipe (like its version, since `incrementVersion` updates the row); details,
+ingredients and steps only change theirs when they actually change (the repository functions skip
+or condition the `UPDATE`). The DTOs return them as `created_at`/`updated_at` (ISO 8601), and
+`PUT` accepts any value for them and ignores it (`validation/read-only-fields.mts`).
 
-`drizzle-kit migrate` fails **without an error message** (only exit code 1) if a migration
-fails, e.g. on a database whose tables were created without migrations: check
-`drizzle.__drizzle_migrations` then, and `pnpm db:reset` if the data may go.
+**Startup check:** the server refuses to start (exit code 1, with what to do) unless the newest
+migration recorded in `drizzle.__drizzle_migrations` is the newest one in
+`drizzle/meta/_journal.json` (`src/recipe/db/migrations-check.mts`; the Docker image contains the
+journal for this). `drizzle-kit migrate` itself fails **without an error message** (only exit
+code 1) if a migration fails, e.g. on a database whose recorded history was squashed away:
+`pnpm db:reset` then, if the data may go.
 
 `pnpm db:migrate` applies the pending migrations (recorded in `drizzle.__drizzle_migrations`);
 run it on a fresh database before the first start, the server does not create tables itself.
 After changing `schema.mts`, run `pnpm db:generate --name=<what>` and commit the new migration;
-for data, `pnpm db:generate --custom --name=<what>` creates an empty SQL file to fill in. Never
-edit an applied migration, and do not use `drizzle-kit push`, which bypasses the migration
-history. The config is `drizzle.config.mts`, which drizzle-kit does not find on its own, so pass
+for data, `pnpm db:generate --custom --name=<what>` creates an empty SQL file to fill in. Do not
+edit or delete applied migrations, except by squashing as described above while there is no
+production database, and do not use `drizzle-kit push`, which bypasses the migration history. The
+config is `drizzle.config.mts`, which drizzle-kit does not find on its own, so pass
 `--config=drizzle.config.mts` to every drizzle-kit command (the scripts do); its
 `schemaFilter: ['recipes']` makes drizzle-kit look only at the `recipes` schema. `drizzle/schema.mts`
-and `drizzle/relations.mts` are the stale output of that early `db:pull`, not the real schema.
+and `drizzle/relations.mts` are stale output of an early `pnpm db:pull`, not the real schema
+(`src/recipe/db/schema.mts` is).
 
 ## Security plan (authentication and authorization)
 

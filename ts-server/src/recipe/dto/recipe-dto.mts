@@ -6,8 +6,8 @@ import { StepDTO, type StepSelect } from './step-dto.mts';
 export type RecipeSelect = typeof recipe.$inferSelect;
 
 /**
- * A recipe (response body). In lists only `id`, `version` and `name` are set; a single recipe
- * also has its details, ingredients and steps.
+ * A recipe (response body). In lists only `id`, `version`, `name`, `created_at` and `updated_at`
+ * are set; a single recipe also has its details, ingredients and steps.
  */
 export class RecipeDTO {
   /** UUID. */

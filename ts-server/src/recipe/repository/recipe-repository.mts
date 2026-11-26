@@ -5,7 +5,7 @@
  * otherwise PostgreSQL rejects the query: validate them before calling.
  */
 
-import { and, asc, eq, ilike, sql } from 'drizzle-orm';
+import { and, asc, eq, ilike, ne, or, sql } from 'drizzle-orm';
 
 import { db } from '../db/index.mts';
 import { recipe, recipeDetails } from '../db/schema.mts';
@@ -121,25 +121,30 @@ export const updateName = async (id: string, name: string, ex: Executor = db): P
   return rows.length > 0;
 };
 
-/** Replaces the recipe's details. Does not touch the version: see {@linkcode incrementVersion}. */
+/**
+ * Replaces the recipe's details, but only writes if a value differs, so their `updated_at` only
+ * changes on a real change. Does not touch the version: see {@linkcode incrementVersion}.
+ * @returns whether the details changed.
+ */
 export const updateDetails = async (
   id: string,
   details: RecipeDetailsInsert,
   ex: Executor = db,
 ): Promise<boolean> => {
+  const { servings, preparationTimeMinutes, difficulty } = details;
   const rows = await ex
     .update(recipeDetails)
-    .set(details)
-    .where(eq(recipeDetails.recipeId, id))
+    .set({ servings, preparationTimeMinutes, difficulty })
+    .where(
+      and(
+        eq(recipeDetails.recipeId, id),
+        or(
+          ne(recipeDetails.servings, servings),
+          ne(recipeDetails.preparationTimeMinutes, preparationTimeMinutes),
+          ne(recipeDetails.difficulty, difficulty),
+        ),
+      ),
+    )
     .returning({ recipeId: recipeDetails.recipeId });
-  return rows.length > 0;
-};
-
-/**
- * Deletes the recipe; its details, ingredients and steps go with it (`ON DELETE CASCADE`).
- * @returns whether there was such a recipe.
- */
-export const deleteById = async (id: string, ex: Executor = db): Promise<boolean> => {
-  const rows = await ex.delete(recipe).where(eq(recipe.id, id)).returning({ id: recipe.id });
   return rows.length > 0;
 };

@@ -22,9 +22,3 @@ export const StepReplaceSchema = StepSchema.partial({ id: true }).extend({
   position: z.int().gte(1).optional(),
   ...ReadOnlyTimestamps,
 });
-
-/** Request body to change one step. */
-export const StepUpdateSchema = z.compile(StepSchema.omit({ id: true })).readonly();
-
-export type StepReplaceType = z.infer<typeof StepReplaceSchema>;
-export type StepUpdateType = z.infer<typeof StepUpdateSchema>;

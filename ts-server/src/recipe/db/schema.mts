@@ -22,11 +22,13 @@ export const recipeSchema = pgSchema('recipes');
  */
 const timestamps = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  // Drizzle adds `updated_at = now()` to every UPDATE of the row it makes.
+  // Drizzle adds this to every UPDATE of the row it makes. `now()` is when the transaction began,
+  // so a transaction that began earlier but writes later (`If-Match: *`) would set an older time
+  // than the one it overwrites; `greatest` keeps `updated_at` from going backwards.
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
     .defaultNow()
-    .$onUpdate(() => sql`now()`),
+    .$onUpdate(() => sql`greatest(now(), "updated_at")`),
 };
 
 export const difficultyEnum = recipeSchema.enum('difficulty', ['easy', 'medium', 'hard']);
