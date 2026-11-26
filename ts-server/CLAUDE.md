@@ -67,7 +67,9 @@ HTTP/1.1; test HTTP/2 with a browser or Node's `http2.connect`.
 
 The certificate is a self-signed development certificate for `localhost`, `127.0.0.1` and `::1`
 in `tls/` (`key.pem`, `cert.pem`, valid until 2029-02). Clients have to trust `tls/cert.pem` or
-skip verification (`curl -k`). To create a new one (in Git Bash, `MSYS_NO_PATHCONV=1` keeps
+skip verification (`curl -k`). `tls/key.pem` is git-ignored, so after cloning the server does not
+start until both files are created. The committed `cert.pem` only fits the key it was made with,
+so create both together. To create them (in Git Bash, `MSYS_NO_PATHCONV=1` keeps
 `/CN=...` from being turned into a Windows path):
 
 ```sh
