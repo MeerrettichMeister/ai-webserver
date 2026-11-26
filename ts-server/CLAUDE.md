@@ -42,6 +42,15 @@ missing, `412` if not the current version; `src/etag.mts`) and answer with the r
 `ETag`. Invalid JSON is `400`, a failed Zod validation or an unknown ingredient/step id `422`, a
 unique violation (e.g. two ingredients swapping names in one `PUT`) `409`.
 
+**Every error response is Problem Details (RFC 9457)**, built only by `createProblemDetails` in
+`src/problem-details.mts` and mapped from thrown errors in `app.onError` (including Hono's own
+`HTTPException`s, keeping their `WWW-Authenticate`), `app.notFound` for unknown routes:
+`Content-Type: application/problem+json`, `type: "about:blank"`, `title` = the status' reason
+phrase, `status`, `detail` (always a **string**, RFC 9457 §3.1.4) and `instance` = the request path.
+Structured data goes into extension members, never into `detail`: a failed validation (`422`) has
+`errors: [{ path, code, message }]`. A `500` only says "An unexpected error occurred."; the error
+itself is logged.
+
 The git repository root is the parent directory (`ai-webserver/`). This project lives in
 `ts-server/`.
 
