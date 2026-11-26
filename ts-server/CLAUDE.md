@@ -33,7 +33,9 @@ row versions as well.
 writes, each write in one transaction) and throws the errors in `service/errors.mts`.
 `src/recipe/router/recipe-router.mts` is mounted at `/recipes`; its contract follows py-server:
 `GET /` (list, `?search=`), `GET /:id` (`ETag`, `304` on `If-None-Match`), `POST /` (`201`, empty body,
-the new recipe's URL in `Location`), `PUT /:id` (replace) and `PATCH /:id` (rename). Writes require `If-Match` (`428` if
+the new recipe's URL in `Location`), `PUT /:id` (replace; accepts a changed `GET /:id` response as it is: its `id` must match the
+URL, the read-only `version`s and step `position`s are ignored, the order of `steps` counts) and
+`PATCH /:id` (rename). Writes require `If-Match` (`428` if
 missing, `412` if not the current version; `src/etag.mts`) and answer with the recipe and its new
 `ETag`. Invalid JSON is `400`, a failed Zod validation or an unknown ingredient/step id `422`, a
 unique violation (e.g. two ingredients swapping names in one `PUT`) `409`.

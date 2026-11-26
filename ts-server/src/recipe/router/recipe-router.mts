@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 import { etag, type ExpectedVersion, matches, parseETags } from '../../etag.mts';
 import { requireGroup } from '../../security/auth.mts';
-import { NotFoundError } from '../service/errors.mts';
+import { InvalidReferenceError, NotFoundError } from '../service/errors.mts';
 import { findAll, findById } from '../service/recipe-service.mts';
 import { create, replace, update } from '../service/recipe-write-service.mts';
 import {
@@ -93,7 +93,14 @@ router.post('/', requireGroup('moderator'), async (c) => {
 router.put('/:id', requireGroup('moderator'), async (c) => {
   const id = recipeId(c);
   const expected = ifMatch(c);
-  const recipe = await replace(id, RecipeReplaceSchema.parse(await readJson(c)), expected);
+  const replacement = RecipeReplaceSchema.parse(await readJson(c));
+  // The body may be a changed `GET` response; then its id must name this recipe.
+  if (replacement.id !== undefined && replacement.id !== id) {
+    throw new InvalidReferenceError(
+      `The id ${replacement.id} in the body is not the one in the URL.`,
+    );
+  }
+  const recipe = await replace(id, replacement, expected);
   c.header('ETag', etag(recipe.version));
   return c.json(recipe);
 });

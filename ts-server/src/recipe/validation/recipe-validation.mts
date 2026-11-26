@@ -41,11 +41,16 @@ export const RecipeUpdateSchema = z.compile(RecipeSchema.pick({ name: true })).r
 /**
  * Request body with the complete recipe: ingredients and steps left out are deleted.
  * Ingredient names must be unique, and so must the ids of the ingredients and of the steps.
+ *
+ * The response of `GET /recipes/:id` is accepted as it is, so clients can change it and send it
+ * back: its `id` must then be the one in the URL, and the read-only `version`s and step
+ * `position`s are ignored (`If-Match` and the order of `steps` count).
  */
 export const RecipeReplaceSchema = z
   .compile(
-    RecipeSchema.omit({ id: true })
+    RecipeSchema.partial({ id: true })
       .extend({
+        version: z.int().gte(0).optional(),
         ingredients: z.array(IngredientReplaceSchema).default([]),
         /** Steps in the order they are performed. */
         steps: z.array(StepReplaceSchema).default([]),

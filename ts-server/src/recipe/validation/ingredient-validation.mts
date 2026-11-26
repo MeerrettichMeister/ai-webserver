@@ -13,8 +13,14 @@ const IngredientSchema = z.strictObject({
 /** An ingredient of a new recipe. */
 export const IngredientCreateSchema = IngredientSchema.omit({ id: true });
 
-/** An ingredient of a replaced recipe: updated if it has an `id`, otherwise added. */
-export const IngredientReplaceSchema = IngredientSchema.partial({ id: true });
+/**
+ * An ingredient of a replaced recipe: updated if it has an `id`, otherwise added. It may also have
+ * the `version` of `GET /recipes/:id`, so that its response can be sent back changed; the version
+ * is ignored, the `If-Match` of the recipe is what counts.
+ */
+export const IngredientReplaceSchema = IngredientSchema.partial({ id: true }).extend({
+  version: z.int().gte(0).optional(),
+});
 
 export type IngredientCreateType = z.infer<typeof IngredientCreateSchema>;
 export type IngredientReplaceType = z.infer<typeof IngredientReplaceSchema>;

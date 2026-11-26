@@ -9,8 +9,16 @@ const StepSchema = z.strictObject({
   preparation_method: PreparationMethodSchema,
 });
 
-/** A step of a replaced recipe: updated if it has an `id`, otherwise added. */
-export const StepReplaceSchema = StepSchema.partial({ id: true });
+/**
+ * A step of a replaced recipe: updated if it has an `id`, otherwise added. It may also have the
+ * `version` and `position` of `GET /recipes/:id`, so that its response can be sent back changed;
+ * both are ignored: the `If-Match` of the recipe is what counts, and the steps are numbered in the
+ * order of the array.
+ */
+export const StepReplaceSchema = StepSchema.partial({ id: true }).extend({
+  version: z.int().gte(0).optional(),
+  position: z.int().gte(1).optional(),
+});
 
 /** Request body to change one step. */
 export const StepUpdateSchema = z.compile(StepSchema.omit({ id: true })).readonly();
